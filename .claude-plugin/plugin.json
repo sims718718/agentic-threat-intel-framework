@@ -1,0 +1,23 @@
+{
+  "name": "threat-intel-hunt-framework",
+  "version": "0.1.0",
+  "description": "Agentic pipeline for intel-driven threat hunting and detection engineering: analyze CTI, produce an actionable intel report, build a hunt plan, author a detection, and validate it — grounded in the Unified Threat Hunting Process.",
+  "author": {
+    "name": "sims718718"
+  },
+  "license": "MIT",
+  "keywords": [
+    "threat-hunting",
+    "threat-intelligence",
+    "detection-engineering",
+    "mitre-attack",
+    "security"
+  ],
+  "skills": [
+    "./skills/intel-analysis",
+    "./skills/intel-report",
+    "./skills/hunt-planner",
+    "./skills/detection-engineer",
+    "./skills/hunt-validator"
+  ]
+}

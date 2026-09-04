@@ -1,0 +1,24 @@
+{
+  "name": "threat-intel-hunt-framework",
+  "id": "threat-intel-hunt-framework",
+  "owner": {
+    "name": "sims718718"
+  },
+  "metadata": {
+    "description": "Local marketplace for the threat-intel-hunt-framework plugin — intel analysis, hunt planning, and detection engineering as a Claude Code plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "threat-intel-hunt-framework",
+      "source": "./",
+      "description": "Agentic pipeline for intel-driven threat hunting and detection engineering, grounded in the Unified Threat Hunting Process.",
+      "version": "0.1.0",
+      "author": {
+        "name": "sims718718"
+      },
+      "keywords": ["threat-hunting", "threat-intelligence", "detection-engineering"],
+      "category": "workflow"
+    }
+  ]
+}
