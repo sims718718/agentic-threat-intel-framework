@@ -9,6 +9,8 @@ Turn analysis findings into a report a decision-maker can act on without reading
 
 ## Step 1: Locate or gather the analysis
 
+If invoked standalone (not via `/run-hunt-pipeline`) and the slug isn't already established from context, look for the most recent matching file under `./threat-hunting/intel-analysis/*.md` and use its slug; if more than one candidate exists, ask the user which one.
+
 Look for `./threat-hunting/intel-analysis/<slug>-analysis.md` in the invoking project. If it exists, read it — this is your primary input. If it doesn't exist (the user jumped straight to this skill), either run the `intel-analysis` skill's process yourself first, or, if the user has already supplied enough raw material directly, work from that — note in **Confidence and Sourcing** that the formal analysis stage was skipped.
 
 ## Step 2: Write the report
@@ -44,10 +46,10 @@ Write to `./threat-hunting/intel-reports/<slug>-report.md` (same slug as the ana
 [Which of the mapped techniques are strong candidates for a standing detection vs. which need a hunt first because they're too broad/noisy as stated.]
 
 ### Mitigate
-[Any patch, config, or control changes implied directly by the intel — e.g. a specific CVE with a patch available. Leave empty with "None identified" if the intel is purely behavioral.]
+[Any patch, config, or control changes implied directly by the intel — e.g. a specific CVE with a patch available. Pull from the analysis's `## Related CVEs / Advisories` table when relevant — a CVE with a patch is usually a Mitigate item, not just a Detect one. Leave empty with "None identified" if the intel is purely behavioral.]
 
 ## Confidence and Sourcing
-[Overall confidence in this report and why. Explicitly note if the intel-analysis stage was skipped (see Step 1).]
+[Overall confidence in this report and why. Explicitly note if the intel-analysis stage was skipped (see Step 1). Carry forward the analysis's `## Open Questions and Gaps` explicitly here — a decision-maker reading only this report still needs to know what's unresolved.]
 
 ## Appendix: Full Source List
 [Every source cited in the analysis, carried forward verbatim.]

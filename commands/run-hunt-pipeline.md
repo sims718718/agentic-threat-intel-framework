@@ -1,12 +1,13 @@
 ---
 description: Run the full intel-to-detection threat hunting pipeline end-to-end — intel analysis, intel report, hunt plan, detection, and validation — without pausing between stages.
+argument-hint: "[CTI report path, URL, CVE ID, actor name, or technique]"
 ---
 
-Run all five stages of the threat-intel-hunt-framework pipeline against the input the user provided with this command (a CTI report file, a URL, pasted text, a CVE ID, an actor name, a MITRE technique, or a rough idea). Do not pause for user confirmation between stages — run straight through. The user reviews the output files afterward, at their own pace.
+Run all five stages of the threat-intel-hunt-framework pipeline against `$ARGUMENTS` (a CTI report file, a URL, pasted text, a CVE ID, an actor name, a MITRE technique, or a rough idea). Do not pause for user confirmation between stages — run straight through. The user reviews the output files afterward, at their own pace.
 
 ## Sequence
 
-1. **Derive the slug.** kebab-case, ≤6 words, from the input's primary subject (see any skill's Step 0 for the exact rule). Use this same slug for every file below.
+1. **Derive the slug.** kebab-case, ≤6 words, from the input's primary subject (see intel-analysis's Step 0 for the exact rule). Use this same slug for every file below.
 2. **Invoke the `intel-analysis` skill** with the user's input. Wait for it to write `./threat-hunting/intel-analysis/<slug>-analysis.md`.
 3. **Invoke the `intel-report` skill.** It will find and read the file from step 2 automatically. Wait for `./threat-hunting/intel-reports/<slug>-report.md`.
 4. **Invoke the `hunt-planner` skill.** It will find and read the file from step 3 automatically. Wait for `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`.

@@ -16,11 +16,25 @@ CTI input → intel-analysis → intel-report → hunt-planner → detection-eng
 | 4 | `detection-engineer` | An ADS-lite detection handoff artifact: Sigma rule, robustness score, blind spots, response guidance |
 | 5 | `hunt-validator` | A validation record (did the detection actually fire?) plus a typed outcome document |
 
-Each skill triggers independently — jump into any single stage without running the rest. To run everything end-to-end against one input, use `/run-hunt-pipeline`.
+Each skill triggers independently — jump into any single stage without running the rest. To run everything end-to-end against one input, use `/run-hunt-pipeline`, e.g.:
+
+```
+/run-hunt-pipeline CVE-2026-41205
+```
 
 ## Output convention
 
-Every stage writes to `./threat-hunting/<stage>/<slug>-<stage>.md` in whatever project you're working in — never inside this plugin's own repo. See each skill's `SKILL.md` for its exact output structure.
+Every stage writes to a fixed path in whatever project you're working in — never inside this plugin's own repo:
+
+| Stage | Output path |
+|---|---|
+| intel-analysis | `./threat-hunting/intel-analysis/<slug>-analysis.md` |
+| intel-report | `./threat-hunting/intel-reports/<slug>-report.md` |
+| hunt-planner | `./threat-hunting/hunt-plans/<slug>-hunt-plan.md` |
+| detection-engineer | `./threat-hunting/detections/<slug>-detection.md` |
+| hunt-validator | `./threat-hunting/validations/<slug>-validation.md` |
+
+See each skill's `SKILL.md` for its exact output structure.
 
 ## Installing locally
 

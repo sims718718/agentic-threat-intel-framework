@@ -20,7 +20,7 @@ Whichever one you are assigned, follow its process exactly:
 
 ## Sourcing rules
 
-Consult `skills/intel-analysis/references/high-reputation-sources.md` (read it first) and prefer those sources. When you cite a claim from the web, name the source and, if it is not on that curated list, prefix the finding with `[UNVERIFIED SOURCE]`.
+Consult `${CLAUDE_PLUGIN_ROOT}/skills/intel-analysis/references/high-reputation-sources.md` (read it first) and prefer those sources. When you cite a claim from the web, name the source and, if it is not on that curated list, prefix the finding with `[UNVERIFIED SOURCE]`.
 
 ## Output format
 

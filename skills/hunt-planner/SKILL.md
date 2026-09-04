@@ -49,13 +49,13 @@ Pick the relevant domain row from `references/domain-telemetry-matrix.md` (endpo
 
 **Express path**: If the user wants to move fast, capture only **SIEM platform** and **environment type** — these are the minimum required to produce useful, non-generic outputs.
 
-Document captured context at the top of the Epic under an `## Environment Profile` section.
+Document captured context as a `## Environment Profile` section at the top of the hunt plan document, before the Epic.
 
 ---
 
 ## Step 1: Identify the Triggering Event
 
-**Pipeline mode:** first check for `./threat-hunting/intel-reports/<slug>-report.md` in the invoking project. If it exists, read its `## Recommended Actions > ### Hunt` section — those are your candidate hypothesis seeds — and its `## MITRE ATT&CK Coverage` table for technique context. Use the same `<slug>` for this hunt plan's output file.
+**Pipeline mode:** first check for `./threat-hunting/intel-reports/<slug>-report.md` in the invoking project. If invoked standalone (not via `/run-hunt-pipeline`) and no slug is already established from context, look for the most recent matching file under `./threat-hunting/intel-reports/*.md` and use its slug; if more than one candidate exists, ask the user which one. If no report exists at all, derive a fresh slug from the trigger itself (see intel-analysis's Step 0 for the exact rule). If it exists, read its `## Recommended Actions > ### Hunt` section — those are your candidate hypothesis seeds — and its `## MITRE ATT&CK Coverage` table for technique context. Use the same `<slug>` for this hunt plan's output file.
 
 Every hunt begins with a trigger. Identify which type applies:
 
