@@ -65,4 +65,4 @@ Leave any uncaptured field as `Unknown` rather than omitting the row.
 ## When to ask vs. proceed
 
 - **Standalone mode: ask first** — this skill's interactive mode exists specifically to interview the user; do not fabricate environment details when invoked directly. Proceed and annotate only for fields left uncaptured via the Express path — mark them `Unknown` and invite the user to fill them in later.
-- **Pipeline mode: never ask, always proceed** — infer what you can from context, mark everything else `Unknown`, and never pause. This mirrors every other stage's "proceed and annotate gaps rather than block" philosophy.
+- **Pipeline mode: ask first, always proceed** —  always ask the user to gather additonal context prior to procedding  - infer what you can from context, mark everything else `Unknown`, and never pause after gathering intial context. This mirrors every other stage's "proceed and annotate gaps rather than block" philosophy.
