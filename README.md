@@ -15,8 +15,9 @@ CTI input → intel-analysis → intel-report → hunt-planner → detection-eng
 | 3 | `hunt-planner` | A SMART, rubric-scored hypothesis, feasibility gate, and Jira-structured Epic/Story/Task hunt plan (absorbs the original standalone Threat Hunt Planner skill) |
 | 4 | `detection-engineer` | An ADS-lite detection handoff artifact: Sigma rule, robustness score, blind spots, response guidance |
 | 5 | `hunt-validator` | A validation record (did the detection actually fire?) plus a typed outcome document |
+| — | `gather` | A reusable `environment-profile.md` capturing SIEM/EDR platform, environment type, industry vertical, log retention, and hunt maturity — standalone utility skill, usable at any point in the pipeline |
 
-Each skill triggers independently — jump into any single stage without running the rest. To run everything end-to-end against one input, use `/run-hunt-pipeline`, e.g.:
+Each skill triggers independently — jump into any single stage without running the rest. `gather` is not part of the five-stage sequence and is intentionally not invoked by `/run-hunt-pipeline`, since its purpose is to interview the user; run it any time to record environment context once for reuse by later stages. To run everything end-to-end against one input, use `/run-hunt-pipeline`, e.g.:
 
 ```
 /run-hunt-pipeline CVE-2026-41205
@@ -33,6 +34,7 @@ Every stage writes to a fixed path in whatever project you're working in — nev
 | hunt-planner | `./threat-hunting/hunt-plans/<slug>-hunt-plan.md` |
 | detection-engineer | `./threat-hunting/detections/<slug>-detection.md` |
 | hunt-validator | `./threat-hunting/validations/<slug>-validation.md` |
+| gather | `./threat-hunting/environment-profile.md` |
 
 See each skill's `SKILL.md` for its exact output structure.
 

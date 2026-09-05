@@ -55,6 +55,10 @@ Write to `./threat-hunting/intel-reports/<slug>-report.md` (same slug as the ana
 [Every source cited in the analysis, carried forward verbatim.]
 ```
 
+## Step 3: Render the HTML twin
+
+After writing the Markdown file, also render a styled, self-contained HTML sibling at `./threat-hunting/intel-reports/<slug>-report.html`, following `../_shared/references/html-report-shell.md`'s shell and translation rules exactly. The Markdown file stays the source of truth; the HTML is a rendering of the same content, produced in the same turn.
+
 ## When to ask vs. proceed
 
 - **Ask first** when the analysis file is missing AND the user hasn't supplied enough raw material to write a report without fabricating findings.

@@ -32,6 +32,8 @@ Generate structured, actionable threat hunt plans using the Unified Threat Hunti
 
 ## Step 0: Gather Environment Context
 
+First check for `./threat-hunting/environment-profile.md` in the invoking project. If it exists, load it and reuse its values as the `## Environment Profile` section below — do not re-interview the user. If it does not exist, fall back to the inline interview below unchanged (this keeps hunt-planner fully standalone with zero dependency on the `gather` skill ever having been run).
+
 Before building the hunt plan, capture the user's environment so that all outputs — queries, data source references, tool names — are tailored rather than generic. If any of this is already known from the conversation, skip those items.
 
 **Capture (or infer) the following:**
@@ -289,6 +291,9 @@ Before finalizing the hunt plan, verify:
 - [ ] At least one Story created with methodology and detection logic
 - [ ] Task placeholders created for expected outcome types
 - [ ] Written to `./threat-hunting/hunt-plans/<slug>-hunt-plan.md` (Environment Profile + Epic + Stories + Tasks, in that order)
+- [ ] HTML twin rendered to `./threat-hunting/hunt-plans/<slug>-hunt-plan.html`
+
+After writing the Markdown hunt plan, also render a styled, self-contained HTML sibling at `./threat-hunting/hunt-plans/<slug>-hunt-plan.html`, following `../_shared/references/html-report-shell.md`'s shell and translation rules exactly. The Markdown file stays the source of truth.
 
 ## Express Mode: Rapid Hunt Skeleton
 

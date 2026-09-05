@@ -18,6 +18,7 @@
     "./skills/intel-report",
     "./skills/hunt-planner",
     "./skills/detection-engineer",
-    "./skills/hunt-validator"
+    "./skills/hunt-validator",
+    "./skills/gather"
   ]
 }
