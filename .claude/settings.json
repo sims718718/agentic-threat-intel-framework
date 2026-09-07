@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "threat-intel-hunt-framework@threat-intel-hunt-framework": true
+  }
+}
