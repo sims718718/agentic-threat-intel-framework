@@ -19,6 +19,7 @@ Prefer, in order: (1) primary/government sources, (2) the vendor or researcher w
 | [Unit 42 (Palo Alto Networks)](https://unit42.paloaltonetworks.com/) | Vendor threat intel | Malware analysis, campaign TTPs |
 | [Recorded Future](https://www.recordedfuture.com/blog) | Vendor threat intel | Actor infrastructure, predictive intelligence |
 | [GTIG (Google Threat Intelligence Group)](https://cloud.google.com/blog/topics/threat-intelligence) | Vendor threat intel | Merged Mandiant/TAG reporting, nation-state activity |
+|[Microsoft Threat Intelligence](https://www.microsoft.com/en-us/security/blog/topic/threat-intelligence/)| Vendor threat intel | Actor infrastructure, predictive intelligence |
 
 ## When a claim has no source on this list
 
