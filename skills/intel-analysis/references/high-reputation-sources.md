@@ -20,6 +20,9 @@ Prefer, in order: (1) primary/government sources, (2) the vendor or researcher w
 | [Recorded Future](https://www.recordedfuture.com/blog) | Vendor threat intel | Actor infrastructure, predictive intelligence |
 | [GTIG (Google Threat Intelligence Group)](https://cloud.google.com/blog/topics/threat-intelligence) | Vendor threat intel | Merged Mandiant/TAG reporting, nation-state activity |
 |[Microsoft Threat Intelligence](https://www.microsoft.com/en-us/security/blog/topic/threat-intelligence/)| Vendor threat intel | Actor infrastructure, predictive intelligence |
+|[Cisco Talos](https://blog.talosintelligence.com/)| Vendor threat intel | Actor infrastructure, predictive intelligence |
+|[Cyber Research Blog](https://cyble.com/blog/)| Intel Blog |  Malware analysis, campaign TTPs |
+
 
 ## When a claim has no source on this list
 
