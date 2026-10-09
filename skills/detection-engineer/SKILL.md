@@ -1,6 +1,6 @@
 ---
 name: detection-engineer
-description: "Turn a validated hunt finding into a production-ready detection handoff artifact: a Sigma rule (plus native SIEM translation if the platform is known), MITRE ATT&CK mapping, robustness scoring, blind spots, and response guidance. Always trigger when a user asks to build a detection from a hunt finding, convert a hunt query into a standing rule, write a Sigma rule, or asks how to hand a finding off to detection engineering. This is Stage 4 of the threat-intel-hunt-framework pipeline — it reads the hunt-planner skill's output and its own output feeds the hunt-validator skill."
+description: "Turn a validated hunt finding into a production-ready detection handoff artifact: a Sigma rule (plus native SIEM translation if the platform is known), MITRE ATT&CK mapping, robustness scoring, blind spots, and response guidance. Always trigger when a user asks to build a detection from a hunt finding, convert a hunt query into a standing rule, write a Sigma rule, or asks how to hand a finding off to detection engineering. Runs in /run-post-hunt, after a human has executed the hunt — it reads the hunt-planner skill's output plus the hunt-execution log, and its own output feeds the hunt-validator skill."
 ---
 
 # Detection Engineer
@@ -12,6 +12,8 @@ Turn a hunt finding into an artifact detection engineering can actually accept �
 If invoked standalone (not via `/run-hunt-pipeline`) and the slug isn't already established from context, look for the most recent matching file under `./threat-hunting/hunt-plans/*.md` and use its slug; if more than one candidate exists, ask the user which one.
 
 Read `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`. Pull: the `## Environment Profile` (for SIEM/EDR platform — determines whether you produce Sigma only or Sigma + a native translation), the Story's `### Detection Logic` and `### Expected Outcomes` (the raw material for the rule), and the Epic's `### MITRE ATT&CK Mapping`.
+
+If `./threat-hunting/hunt-logs/<slug>-hunt-log.md` exists and its `Results status` is `RECORDED` or `PARTIAL`, read it too: the queries that actually ran, the hit dispositions, the known-good exclusions, and the result counts are the evidence for the rule. Prefer the log's executed query over the plan's pseudocode, and do not build a rule from a Story the log marks `Not executed`. If the log is absent or `PENDING EXECUTION`, behave exactly as before.
 
 If no hunt plan exists yet, ask for the finding directly: what behavior fires the rule, on what data source, and what the false-positive picture looks like. Do not fabricate a finding to fill the template.
 
@@ -33,6 +35,8 @@ If both score low, do not ship the detection — recommend a Visibility Gap outc
 ## Step 4: Write the handoff artifact
 
 Fill `references/detection-handoff-spec.md`'s exact 10-section template. Do not skip a section — if a section genuinely doesn't apply yet (e.g. validation hasn't run), write `Not yet validated — see hunt-validator` rather than leaving it blank; the spec's acceptance gate rejects a handoff with an empty validation or blind-spots section.
+
+When a hunt log is available, use it for section 7: state the observed false positives, the tuning applied, and the sample size (events or hosts searched and the window), so "None observed" always carries a number. Include `True positive` and `Undetermined` hits as triage evidence in section 4 or 7 as appropriate, and never describe an `Undetermined` hit as a false positive.
 
 Write to `./threat-hunting/detections/<slug>-detection.md`:
 
