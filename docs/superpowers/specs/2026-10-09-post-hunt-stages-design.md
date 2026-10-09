@@ -49,7 +49,7 @@ The hunt log is one progressively-filled file, like the validation file. The HTM
 
 Records the hunt. It has no execution tools and never produces results.
 
-**WORKSHEET mode** (end of `/run-hunt-pipeline`, or standalone). Reads `<slug>-hunt-plan.md` and `./threat-hunting/environment-profile.md`. Writes `<slug>-hunt-log.md` with a header block and one block per Story, pre-filled from the plan: planned query pseudocode (the Story's `Detection Logic`), planned window, data sources and fields, and expected malicious/benign outcomes. Result fields are blank, marked `[PENDING EXECUTION]`.
+**WORKSHEET mode** (end of `/run-hunt-pipeline`, or standalone). Reads `<slug>-hunt-plan.md` and `./threat-hunting/environment-profile.md`. Writes `<slug>-hunt-log.md` with a header block and one block per Story, pre-filled from the plan: planned query pseudocode (the Story's `Detection Logic`), planned window, data sources and fields, and expected malicious/benign outcomes. Result fields are blank, marked `[PENDING EXECUTION]`, and the header carries `Results status: PENDING EXECUTION`. **Re-run safety:** if a log already exists with `Results status` of `RECORDED` or `PARTIAL`, WORKSHEET mode leaves it untouched and says so; it never overwrites recorded results.
 
 **INTAKE mode** (after the human hunts; standalone or via `/run-post-hunt`). Input is the filled worksheet, a file path, or pasted free-form notes.
 
@@ -65,7 +65,7 @@ Records the hunt. It has no execution tools and never produces results.
 
 Intake updates the log in place on re-run.
 
-**Hunt log structure** (fixed order, a downstream contract): Execution Header (hunter, dates executed, platform, plan reference) → Per-Story Results → Hunt-Level Verdict and Coverage → Outcome Candidates → Known-Good / Exclusion List → Deviations and New Questions.
+**Hunt log structure** (fixed order, a downstream contract): Execution Header (plan reference, hunter, dates executed, platform, `Results status`: PENDING EXECUTION / RECORDED / PARTIAL) → Per-Story Results → Hunt-Level Verdict and Coverage → Outcome Candidates → Known-Good / Exclusion List → Deviations and New Questions.
 
 ## `hunt-reporter` skill (UTH: Report & Iterate; Maturity & Metrics)
 
@@ -84,8 +84,8 @@ Reads `<slug>-report.md` (intel), `<slug>-hunt-plan.md`, `<slug>-hunt-log.md`, a
 
 Two modes, **inferred, not stored**, so no field is added to the existing validation or detection artifacts.
 
-- **PLAN mode.** Used when `<slug>-hunt-log.md` has no recorded results (including at the end of `/run-hunt-pipeline`). Writes `<slug>-validation.md` with test selection, approval placeholders and the telemetry-proof question, all `[PENDING EXECUTION]`. No outcome documentation. No write-back to the detection or the report. No detection exists yet, so the existing `Source detection:` field reads `None yet (PLAN mode)`.
-- **RECORD mode.** Used when the log has recorded results. Existing behavior, plus:
+- **PLAN mode.** Used when `<slug>-hunt-log.md` is absent or its `Results status` is `PENDING EXECUTION` (including at the end of `/run-hunt-pipeline`). If the validation file already holds RECORD-mode content, PLAN mode leaves it untouched. Writes `<slug>-validation.md` with test selection, approval placeholders and the telemetry-proof question, all `[PENDING EXECUTION]`. No outcome documentation. No write-back to the detection or the report. No detection exists yet, so the existing `Source detection:` field reads `None yet (PLAN mode)`.
+- **RECORD mode.** Used when the log's `Results status` is `RECORDED` or `PARTIAL`. Existing behavior, plus:
   - The validation-required table's "clean hunt" rows are decided from the log's verdict and coverage fields.
   - Typed outcomes are documented from the log's outcome candidates.
   - It writes back into detection §9 as today, and now also into the hunt report's `Validation` section.
