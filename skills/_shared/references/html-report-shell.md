@@ -1,6 +1,6 @@
 # HTML Report Shell
 
-**Fits at:** the final write step of `intel-report` (Step 3) and `hunt-planner` (Output Checklist) — after the Markdown file is written, render this same content as a styled HTML sibling in the same turn.
+**Fits at:** the final write step of `intel-report` (Step 3), `hunt-planner` (Output Checklist), and `hunt-reporter` (Step 3) — after the Markdown file is written, render this same content as a styled HTML sibling in the same turn.
 **Purpose:** Give the user a clean, self-contained, double-clickable HTML rendering of the report next to its Markdown source, with zero build tooling — the Markdown-writing agent fills this shell directly, no pandoc/npm/build step involved.
 
 ## Rule
@@ -15,6 +15,7 @@ Translation rules:
 - `**bold**`, `[FILL IN: ...]` placeholders, and `Unknown`/`Not assessed` markers stay as emphasis (`<strong>`/`<em>`) — do not strip or resolve them
 - Fenced code blocks → `<pre><code>`
 - Blockquotes (e.g. an Express Plan warning) → `<blockquote>`
+- All text and code content must have `<`, `>`, and `&` escaped (`&lt;`, `&gt;`, `&amp;`); command lines, hostnames, and URLs in the source are untrusted. Never emit script, event-handler, or `javascript:` content from the Markdown.
 
 ## Shell
 

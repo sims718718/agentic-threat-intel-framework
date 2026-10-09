@@ -12,8 +12,8 @@ Run the planning stages of the threat-intel-hunt-framework pipeline against `$AR
 3. **Invoke the `intel-analysis` skill** with the user's input. Wait for it to write `./threat-hunting/intel-analysis/<slug>-analysis.md`.
 4. **Invoke the `intel-report` skill.** It will find and read the file from step 3 automatically. Wait for `./threat-hunting/intel-reports/<slug>-report.md`.
 5. **Invoke the `hunt-planner` skill.** It will find and read the environment profile from step 1 and the report from step 4 automatically. Wait for `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`.
-6. **Invoke the `hunt-execution` skill in WORKSHEET mode.** It reads the plan and writes the blank hunt log `./threat-hunting/hunt-logs/<slug>-hunt-log.md`. If a log with recorded results already exists for this slug, it leaves it untouched; that is expected on a re-run.
-7. **Invoke the `hunt-validator` skill.** With no recorded hunt results it runs in PLAN mode and writes `./threat-hunting/validations/<slug>-validation.md` with the test selection and `[PENDING EXECUTION]` fields. If recorded results already exist it leaves the existing validation file untouched.
+6. **Invoke the `hunt-execution` skill in WORKSHEET mode.** It reads the plan and writes the blank hunt log `./threat-hunting/hunt-logs/<slug>-hunt-log.md`. If the log already holds results (recorded, or filled in by hand), it leaves it untouched; that is expected on a re-run.
+7. **Invoke the `hunt-validator` skill.** With no recorded hunt results it runs in PLAN mode and writes `./threat-hunting/validations/<slug>-validation.md` with the test selection and `[PENDING EXECUTION]` fields. **Skip step 7** (write nothing, and say so) when the hunt log already holds results: a planning re-run must never touch a recorded validation.
 
 ## If a stage can't produce a clean result
 
