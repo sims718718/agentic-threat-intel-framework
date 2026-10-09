@@ -19,6 +19,8 @@
     "./skills/hunt-planner",
     "./skills/detection-engineer",
     "./skills/hunt-validator",
-    "./skills/gather"
+    "./skills/gather",
+    "./skills/hunt-execution",
+    "./skills/hunt-reporter"
   ]
 }
