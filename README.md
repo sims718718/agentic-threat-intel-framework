@@ -1,12 +1,14 @@
 # Threat Intel Hunt Framework
 
-A Claude Code plugin that turns raw cyber threat intelligence into a **hunt plan, a portable detection, and a validation record** by chaining six skills together. Each stage writes a file the next stage reads, and the whole chain follows the [Unified Threat Hunting Process](https://github.com/sims718718/UnifiedThreatHunting).
+A Claude Code plugin that turns raw cyber threat intelligence into a **hunt plan and, once you have run the hunt, a hunt log, a portable detection, a hunt report, and a validation record** by chaining eight skills across two commands. Each stage writes a file the next stage reads, and the whole chain follows the [Unified Threat Hunting Process](https://github.com/sims718718/UnifiedThreatHunting).
 
 ```
-Environment gather → CTI input → intel-analysis → intel-report → hunt-planner → detection-engineer → hunt-validator
+/run-hunt-pipeline:  Environment gather → CTI input → intel-analysis → intel-report → hunt-planner → hunt-execution (worksheet) → hunt-validator (plan)
+                     ... you run the hunt manually and record the results ...
+/run-post-hunt:      hunt-execution (intake) → detection-engineer + hunt-reporter → hunt-validator (record)
 ```
 
-You hand it a CVE, an actor name, an ATT&CK technique, a URL, a report file, or pasted text. You get back six reviewable artifacts under `./threat-hunting/` in your own project.
+You hand it a CVE, an actor name, an ATT&CK technique, a URL, a report file, or pasted text. You get back eight reviewable artifacts under `./threat-hunting/` in your own project.
 
 ---
 
@@ -80,13 +82,26 @@ flowchart TD
         VAL --> OUT
     end
 
+    subgraph SX["Stage 3b — hunt-execution (a human runs the hunt)"]
+        LOG["hunt-log.md<br/>queries · window · coverage · hits · triage · verdict"]
+        SUSP{{"True positive or undetermined hit → escalate first"}}
+        LOG --> SUSP
+    end
+
+    subgraph S4B["Stage 4b — hunt-reporter"]
+        HREP["Hunt report<br/>verdict · coverage achieved · typed outcomes · outcome metrics"]
+    end
+
     IN --> S1
     ENV -.-> S1
     ENV --> S3
     S1 -->|"analysis.md"| S2
     S2 -->|"report.md"| S3
-    S3 -->|"hunt-plan.md"| S4
+    S3 -->|"hunt-plan.md → blank worksheet"| SX
+    SX -->|"hunt-log.md (results)"| S4
+    SX -->|"hunt-log.md (results)"| S4B
     S4 -->|"detection.md"| S5
+    S4B -->|"hunt-report.md"| S5
     OUT -.->|"Threat Intelligence Observable"| S1
     OUT -.->|"Hunt Opportunity"| S3
     OUT -.->|"writes result back into DET section 9"| ADS
@@ -94,7 +109,7 @@ flowchart TD
 
 The chain has four properties worth knowing before you read the stages:
 
-1. **One slug ties everything together.** The slug is kebab-case, at most six words, derived from the input's primary subject. Every file in a run shares it, so each stage can find its predecessor's output (`<slug>-analysis.md` → `<slug>-report.md` → `<slug>-hunt-plan.md` → `<slug>-detection.md` → `<slug>-validation.md`).
+1. **One slug ties everything together.** The slug is kebab-case, at most six words, derived from the input's primary subject. Every file in a run shares it, so each stage can find its predecessor's output (`<slug>-analysis.md` → `<slug>-report.md` → `<slug>-hunt-plan.md` → `<slug>-hunt-log.md` → `<slug>-detection.md` → `<slug>-hunt-report.md` → `<slug>-validation.md`).
 2. **Files are the interface.** Stages do not pass state in memory. Each reads a named file and writes a named file, which is why you can start at any stage and why you can review or edit between stages.
 3. **Gaps are annotated, not hidden.** Stages proceed with `Unknown`, `[FILL IN: …]`, `Not assessed`, or `[PENDING EXECUTION]` rather than inventing content or blocking.
 4. **The loop closes.** Validation outcomes can feed new intel and new hunt ideas back into the front of the pipeline.
@@ -116,9 +131,9 @@ This plugin automates the steps around the hunt, and leaves the hunt itself to y
 | **Feasibility Assessment** | `hunt-planner` Step 4 | GO / NO-GO / CONDITIONAL, with a DeTT&CT-style telemetry gap assessment |
 | **Scope & Objectives** | `hunt-planner` Step 5 | |
 | **Formalize Hunt Plan** | `hunt-planner` Step 6 | Jira Epic / Story / Task structure |
-| **Execute Hunt** | **You** | Not automated. The plan gives you methodology, data sources, and detection logic to run in your own tools |
-| **Document Outcomes** | `detection-engineer` + `hunt-validator` | Detection handoff, validation record, six typed outcome categories |
-| **Report & Iterate** | `hunt-validator` outcomes | `Threat Intelligence Observable` and `Hunt Opportunity` outcomes point back to the start |
+| **Execute Hunt** | **You**, recorded by `hunt-execution` | Not automated. The plan gives you methodology, data sources, and detection logic to run in your own tools; `hunt-execution` gives you a worksheet to record results in |
+| **Document Outcomes** | `hunt-execution` + `detection-engineer` + `hunt-validator` | Hunt log, detection handoff, validation record, six typed outcome categories |
+| **Report & Iterate** | `hunt-reporter` + `hunt-validator` outcomes | Hunt report with outcome metrics; `Threat Intelligence Observable` and `Hunt Opportunity` outcomes point back to the start |
 
 Two details on the mapping:
 
@@ -211,9 +226,18 @@ The output has a fixed order: Environment Profile, Epic, Stories, Tasks.
 
 **Express Mode** produces a condensed skeleton for time-constrained requests (a single CVE or advisory with urgency, "quick plan"). It skips the full feasibility assessment and competing hypotheses, and stamps the document with a warning to upgrade to the full process before executing the hunt.
 
+### Stage 3b — `hunt-execution`: record the hunt a human ran
+
+**Reads:** `<slug>-hunt-plan.md`, and the hunter's results (the filled worksheet, a file, or pasted notes).
+**Writes:** `./threat-hunting/hunt-logs/<slug>-hunt-log.md`
+
+The hunt itself is manual; this skill never runs a query. In **WORKSHEET mode** (end of `/run-hunt-pipeline`) it writes a blank per-Story log pre-filled from the plan: planned query, window, data sources, and expected malicious and benign outcomes. In **INTAKE mode** (start of `/run-post-hunt`) it structures what you bring back: queries run, window searched, data actually queried, a **coverage check**, hits with a triage disposition (`True positive`, `False positive`, `Benign`, `Undetermined`), known-good exclusions, and a verdict.
+
+Verdicts are bounded by coverage. **Supported** needs a true-positive hit. **Refuted** needs every Story executed, coverage confirmed for every source over the planned window, and no true-positive or undetermined hit. Everything else, including a window shorter than planned or an untriaged hit, is **Inconclusive**. An untriaged hit is `Undetermined`, never benign, and a true-positive or undetermined hit is escalated before anything else is written. Re-running the pipeline never overwrites a log that already holds results.
+
 ### Stage 4 — `detection-engineer`: from hunt logic to a handoff-ready detection
 
-**Reads:** `<slug>-hunt-plan.md`, specifically the Environment Profile (to pick dialects), the Story's `Detection Logic` and `Expected Outcomes`, and the Epic's ATT&CK mapping. If no plan exists, it asks you for the finding directly and does not fabricate one.
+**Reads:** `<slug>-hunt-plan.md`, specifically the Environment Profile (to pick dialects), the Story's `Detection Logic` and `Expected Outcomes`, and the Epic's ATT&CK mapping, plus the hunt log when it holds results (executed queries, observed false positives and sample sizes for section 7, triage evidence). If no plan exists, it asks you for the finding directly and does not fabricate one.
 **Writes:** `./threat-hunting/detections/<slug>-detection.md`
 
 A hunt finding is not a detection. This stage produces the artifact detection engineering can actually accept:
@@ -226,10 +250,17 @@ A hunt finding is not a detection. This stage produces the artifact detection en
 
 Where validation has not happened yet, section 9 reads `Not yet validated — see hunt-validator` rather than staying blank.
 
+### Stage 4b — `hunt-reporter`: report and iterate
+
+**Reads:** the hunt log (required), plus the hunt plan, intel report, detection, and validation when present.
+**Writes:** `./threat-hunting/hunt-reports/<slug>-hunt-report.md` and an HTML twin
+
+Sections, in order: Executive Summary, Hypothesis and Verdict, Scope and Coverage Achieved (planned vs achieved), Findings, Typed Outcomes, Detections, Visibility Gaps, Next Iteration, Metrics, Caveats, Validation, Sources. Wording is "no evidence found in X over Y", never "clean". Metrics are per-hunt outcome metrics (net-new detections, visibility gaps raised, validated techniques, detection robustness, time to report), not activity counts. Next Iteration routes `Threat Intelligence Observable` outcomes back to `intel-analysis` and `Hunt Opportunity` outcomes back to `hunt-planner`. The Validation section reads `Pending hunt-validator` until the validator writes its result back. With no recorded hunt results it stops rather than reporting from the plan alone.
+
 ### Stage 5 — `hunt-validator`: prove it, then close out the hunt
 
-**Reads:** `<slug>-detection.md` and `<slug>-hunt-plan.md` (to check whether feasibility was CONDITIONAL).
-**Writes:** `./threat-hunting/validations/<slug>-validation.md`, and **updates section 9 of the detection file in place**.
+**Reads:** the hunt log, `<slug>-detection.md` when it exists, and `<slug>-hunt-plan.md` (to check whether feasibility was CONDITIONAL). It runs in **PLAN mode** when the log has no results (end of `/run-hunt-pipeline`: test selection and `[PENDING EXECUTION]` fields) and **RECORD mode** when it does (end of `/run-post-hunt`).
+**Writes:** `./threat-hunting/validations/<slug>-validation.md`, and, in RECORD mode, **updates section 9 of the detection file and the Validation section of the hunt report in place** (skipping either if that file does not exist).
 
 A hunt that finds nothing is only meaningful if you have shown you *would* have seen it.
 
@@ -301,10 +332,18 @@ The argument can be a CTI report path, a URL, pasted text, a CVE ID, an actor na
 
 1. Runs `gather` in pipeline mode (reuses `environment-profile.md` if present, otherwise infers and marks `Unknown`)
 2. Derives the slug
-3. Runs `intel-analysis` → `intel-report` → `hunt-planner` → `detection-engineer` → `hunt-validator` in order
-4. Prints a summary listing all six file paths and calling out any environment fields left `Unknown`
+3. Runs `intel-analysis` → `intel-report` → `hunt-planner` → `hunt-execution` (worksheet) → `hunt-validator` (plan mode) in order
+4. Prints a summary listing the artifact paths, including the blank hunt log, and calling out any environment fields left `Unknown`
 
-It does **not** pause between stages. Review the output files afterward. One exception: if `hunt-validator` surfaces a **Suspicious Security Event**, the command flags it before the final summary.
+It does **not** pause between stages. Review the output files afterward. It stops at a plan: no detection or hunt report is written until you have run the hunt.
+
+**After you run the hunt** (manually, in your own SIEM/EDR), record your results in `./threat-hunting/hunt-logs/<slug>-hunt-log.md` or keep free-form notes, then run:
+
+```
+/run-post-hunt <slug> [path to results, or paste them]
+```
+
+It runs `hunt-execution` (intake) → `detection-engineer` (only if a hit or a Detection Opportunity outcome candidate exists) → `hunt-reporter` → `hunt-validator` (record mode). It stops without writing anything if no results are supplied, and flags a **Suspicious Security Event** (a true-positive or undetermined hit) immediately, before the rest of the run.
 
 **One stage at a time.** Every skill triggers independently. If invoked standalone without an established slug, a skill looks for the most recent matching file from the previous stage and asks you to choose if there is more than one candidate. Examples of where you might enter midstream:
 
@@ -315,9 +354,11 @@ It does **not** pause between stages. Review the output files afterward. One exc
 | Finished analysis and need a briefing | `intel-report` |
 | A technique or advisory and want a hunt plan | `hunt-planner` |
 | A hunt finding or query to harden into a rule | `detection-engineer` |
+| Results from a hunt you ran | `hunt-execution` (intake) |
+| A finished hunt log and you need a write-up | `hunt-reporter` |
 | A rule you need to prove or a hunt you need to close out | `hunt-validator` |
 
-**What to expect from an unattended run.** Because the pipeline cannot execute an attack simulation and does not stop to ask, validation fields will typically be marked `[PENDING EXECUTION]` until you run the test and report results. Treat the detection as a draft until a real validation record replaces that placeholder.
+**What to expect.** `/run-hunt-pipeline` ends with a plan, a blank hunt log, and a validation plan whose fields read `[PENDING EXECUTION]`. After `/run-post-hunt`, validation test fields still read `[PENDING EXECUTION]` until you run an attack simulation and report the result; treat the detection as a draft until then.
 
 ---
 
@@ -331,10 +372,12 @@ Every stage writes to fixed paths inside **your** project, never inside this plu
 | intel-analysis | `./threat-hunting/intel-analysis/<slug>-analysis.md` |
 | intel-report | `./threat-hunting/intel-reports/<slug>-report.md` (+ `.html`) |
 | hunt-planner | `./threat-hunting/hunt-plans/<slug>-hunt-plan.md` (+ `.html`) |
+| hunt-execution | `./threat-hunting/hunt-logs/<slug>-hunt-log.md` |
 | detection-engineer | `./threat-hunting/detections/<slug>-detection.md` |
+| hunt-reporter | `./threat-hunting/hunt-reports/<slug>-hunt-report.md` (+ `.html`) |
 | hunt-validator | `./threat-hunting/validations/<slug>-validation.md` |
 
-The Markdown file is always the source of truth. The HTML twins (intel-report and hunt-planner) are rendered in the same turn from a shared shell, for easy reading and sharing.
+The Markdown file is always the source of truth. The HTML twins (intel-report, hunt-planner, and hunt-reporter) are rendered in the same turn from a shared shell, for easy reading and sharing.
 
 ---
 
@@ -358,11 +401,12 @@ The plugin is not published to a public marketplace.
 
 ```
 .claude-plugin/
-  plugin.json                  Plugin manifest (lists the six skills)
+  plugin.json                  Plugin manifest (lists the eight skills)
   marketplace.json             Local marketplace definition
 .claude/settings.json          Enables the plugin for this repo
 commands/
-  run-hunt-pipeline.md         The end-to-end /run-hunt-pipeline command
+  run-hunt-pipeline.md         Planning half: /run-hunt-pipeline
+  run-post-hunt.md             Post-execution half: /run-post-hunt (needs hunt results)
 agents/
   intel-researcher.md          Subagent: researches one CTI angle with an evidence contract
 skills/
@@ -374,13 +418,16 @@ skills/
     references/                hypothesis-templates, hypothesis-rubric, feasibility-checklist,
                                telemetry-gap-assessment, domain-telemetry-matrix,
                                data-source-explorer, hunt-maturity-model, jira-templates
+  hunt-execution/              Stage 3b: hunt worksheet and results intake
   detection-engineer/          Stage 4: Sigma + ADS-lite handoff
     references/                sigma-rule-builder.md, detection-handoff-spec.md
+  hunt-reporter/               Stage 4b: hunt report (+ HTML twin)
   hunt-validator/              Stage 5: validation + typed outcomes
     references/                validation-hook.md, hunt-outcome-documenter.md
   _shared/references/          html-report-shell.md (HTML twin template)
 scripts/
   validate-frontmatter.sh      Checks that a Markdown file's frontmatter fields are non-empty
+examples/                      A sample run for pan-os-cve-2026-0257, one file per stage
 ```
 
 ---
@@ -390,7 +437,7 @@ scripts/
 - **The hunt itself is yours.** The pipeline plans, specifies, and documents. Executing queries in your SIEM/EDR and running attack simulations are human steps.
 - **No live integrations.** There are no custom MCP tools and no SIEM/API connections. Intel research uses built-in web search and fetch against a static, curated source list.
 - **No hooks.**
-- **No confirmation gates** between stages in `/run-hunt-pipeline`, including the non-interactive `gather` step.
+- **No confirmation gates** between stages in `/run-hunt-pipeline`, including the non-interactive `gather` step. `/run-post-hunt` has exactly one gate: it stops if no hunt results are supplied.
 - **External reporting is not local validation.** Findings describe what sources report. They say nothing about whether the activity is in your environment or whether you would see it until `hunt-validator` shows it.
 - **Scores are workflow conventions**, not externally validated measures and not probabilities of correctness.
 - **Review the output.** Treat each file as a draft for an analyst to verify.

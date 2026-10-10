@@ -1,9 +1,9 @@
 ---
-description: Run the full intel-to-detection threat hunting pipeline end-to-end — environment gather, intel analysis, intel report, hunt plan, detection, and validation — without pausing between stages.
+description: Run the planning half of the intel-to-hunt pipeline end-to-end — environment gather, intel analysis, intel report, hunt plan, hunt worksheet, and validation plan — without pausing between stages. After you execute the hunt, run /run-post-hunt.
 argument-hint: "[CTI report path, URL, CVE ID, actor name, or technique]"
 ---
 
-Run all six stages of the threat-intel-hunt-framework pipeline against `$ARGUMENTS` (a CTI report file, a URL, pasted text, a CVE ID, an actor name, a MITRE technique, or a rough idea). Do not pause for user confirmation between stages — run straight through. The user reviews the output files afterward, at their own pace.
+Run the planning stages of the threat-intel-hunt-framework pipeline against `$ARGUMENTS` (a CTI report file, a URL, pasted text, a CVE ID, an actor name, a MITRE technique, or a rough idea). Do not pause for user confirmation between stages — run straight through. The user reviews the output files afterward, at their own pace. This command stops at a plan: the hunt itself is run by a human, and detection, hunt report, and recorded validation are produced by `/run-post-hunt` once results exist.
 
 ## Sequence
 
@@ -12,23 +12,26 @@ Run all six stages of the threat-intel-hunt-framework pipeline against `$ARGUMEN
 3. **Invoke the `intel-analysis` skill** with the user's input. Wait for it to write `./threat-hunting/intel-analysis/<slug>-analysis.md`.
 4. **Invoke the `intel-report` skill.** It will find and read the file from step 3 automatically. Wait for `./threat-hunting/intel-reports/<slug>-report.md`.
 5. **Invoke the `hunt-planner` skill.** It will find and read the environment profile from step 1 and the report from step 4 automatically. Wait for `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`.
-6. **Invoke the `detection-engineer` skill.** It will find and read the file from step 5 automatically. Wait for `./threat-hunting/detections/<slug>-detection.md`.
-7. **Invoke the `hunt-validator` skill.** It will find and read the file from step 6 automatically. Wait for `./threat-hunting/validations/<slug>-validation.md`.
+6. **Invoke the `hunt-execution` skill in WORKSHEET mode.** It reads the plan and writes the blank hunt log `./threat-hunting/hunt-logs/<slug>-hunt-log.md`. If the log already holds results (recorded, or filled in by hand), it leaves it untouched; that is expected on a re-run.
+7. **Invoke the `hunt-validator` skill.** With no recorded hunt results it runs in PLAN mode and writes `./threat-hunting/validations/<slug>-validation.md` with the test selection and `[PENDING EXECUTION]` fields. **Skip step 7** (write nothing, and say so) when the hunt log already holds results: a planning re-run must never touch a recorded validation.
 
 ## If a stage can't produce a clean result
 
-Every skill in this pipeline is designed to proceed and annotate gaps (`[FILL IN: ...]`, `Unknown`, `[PENDING EXECUTION]`) rather than block. Let that behavior carry through here too — do not stop the pipeline because one stage's output has caveats. This includes `gather`'s pipeline mode, which marks uninferrable environment fields `Unknown` rather than asking. The one exception is `hunt-validator` surfacing a **Suspicious Security Event**: if that happens, interrupt the summary in step 8 below and flag it first.
+Every skill in this pipeline is designed to proceed and annotate gaps (`[FILL IN: ...]`, `Unknown`, `[PENDING EXECUTION]`) rather than block. Let that behavior carry through here too — do not stop the pipeline because one stage's output has caveats. This includes `gather`'s pipeline mode, which marks uninferrable environment fields `Unknown` rather than asking.
 
 ## Step 8: Final summary
 
-After all six stages complete, print a summary listing all six file paths (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in:
+After all stages complete, print a summary listing every file path (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in. Tell the user that the hunt must now be run manually and that `/run-post-hunt` produces the detection, hunt report, and recorded validation:
 
 ```
-Pipeline complete for <slug>:
+Planning complete for <slug>:
 0. Environment Profile: ./threat-hunting/environment-profile.md
 1. Intel Analysis:   ./threat-hunting/intel-analysis/<slug>-analysis.md
 2. Intel Report:     ./threat-hunting/intel-reports/<slug>-report.md
 3. Hunt Plan:        ./threat-hunting/hunt-plans/<slug>-hunt-plan.md
-4. Detection:        ./threat-hunting/detections/<slug>-detection.md
-5. Validation:       ./threat-hunting/validations/<slug>-validation.md
+4. Hunt Log (blank): ./threat-hunting/hunt-logs/<slug>-hunt-log.md
+5. Validation Plan:  ./threat-hunting/validations/<slug>-validation.md
+
+Next: run the hunt in your own tools, record the results in the hunt log (or keep notes),
+then run /run-post-hunt <slug> [path to results, or paste them].
 ```
