@@ -211,6 +211,69 @@ lint_attack_ids_data_missing() {
   has "attack-ids: SKIP when the data file is absent" "$m" '^SKIP attack-ids'
 }
 
+lint_sigma() {
+  if [ ! -f "$BASE/work/threat-hunting/detections/$SLUG-detection.md" ]; then ok "sigma: baseline has no detection (nothing to check)"; return; fi
+  local b d m f; b=$(lint post "$BASE/work" 2>&1)
+  has "sigma: baseline blocks parse" "$b" '^(PASS|WARN) sigma'
+  d=$(mut); f="$d/threat-hunting/detections/$SLUG-detection.md"; sedi "$f" '/^[[:space:]]*condition:/d'
+  m=$(lint post "$d" 2>&1)
+  has "sigma: a block with no condition fails" "$m" '^FAIL sigma .*missing:.*condition'
+  only_new_fail "sigma: adds only the sigma FAIL" "$b" "$m" sigma
+  d=$(mut); f="$d/threat-hunting/detections/$SLUG-detection.md"; sedi "$f" 's/^\([[:space:]]*condition:\).*/\1 zz_undefined_sel/'
+  m=$(lint post "$d" 2>&1); has "sigma: an undefined selection fails" "$m" '^FAIL sigma .*undefined selection: zz_undefined_sel'
+}
+lint_sigma_condition_forms() {
+  local d m; d=$(mut)
+  mkdir -p "$d/threat-hunting/detections"
+  cat > "$d/threat-hunting/detections/$SLUG-detection.md" <<'EOF'
+# Detection Handoff: test data
+
+## DET-901 - wildcard condition
+```yaml
+title: t
+logsource:
+    product: windows
+detection:
+    selection_a:
+        Image|endswith: '\a.exe'
+    selection_b:
+        CommandLine|contains: 'x'
+    condition: 1 of selection_* and not filter_none
+level: low
+```
+## DET-902 - all of them in a block scalar
+```yaml
+title: t
+logsource:
+    product: windows
+detection:
+    sel1:
+        Image|endswith: '\a.exe'
+    sel2:
+        CommandLine|contains: 'x'
+    condition: |
+        all of them
+level: low
+```
+## DET-903 - indicator only
+```yaml
+title: t
+logsource:
+    product: windows
+detection:
+    selection:
+        Hashes|contains: 'abc'
+        DestinationIp: '10.0.0.1'
+    condition: selection
+level: low
+```
+EOF
+  m=$(lint post "$d" 2>&1)
+  has "sigma forms: 1 of selection_* with an undefined filter fails" "$m" '^FAIL sigma block 1 .*undefined selection: filter_none'
+  has "sigma forms: all of them in a block scalar passes" "$m" '^PASS sigma block 2'
+  has "sigma forms: an indicator-only rule warns" "$m" '^WARN sigma block 3 .*indicators'
+}
+
 # --- tests end ---
 
 main() {

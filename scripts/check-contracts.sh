@@ -192,6 +192,76 @@ check_attack() {
   done
 }
 
+IFS= read -r -d '' SIGMA_AWK <<'AWK'
+function finish(   i, n, mind, ind, line, key, names, cond, incond, tokens, t, w, k, ok, pre, undefd, missing, field, base, allind, nfields, v, req) {
+  missing = ""
+  n = split("title logsource detection level", req, " ")
+  for (i = 1; i <= n; i++) if (!(req[i] in top)) missing = missing " " req[i]
+  mind = 1000
+  for (i = 1; i <= nd; i++) if (detind[i] < mind) mind = detind[i]
+  cond = ""; incond = 0; nfields = 0; allind = 1
+  for (i = 1; i <= nd; i++) {
+    line = detl[i]; ind = detind[i]
+    if (ind == mind && line ~ /^[[:space:]]*[A-Za-z0-9_*-]+:/) {
+      key = line; sub(/^[[:space:]]*/, "", key); sub(/:.*/, "", key)
+      incond = 0
+      if (key == "condition") {
+        incond = 1; v = line; sub(/^[[:space:]]*condition:[[:space:]]*/, "", v)
+        if (v != "|" && v != ">") cond = cond " " v
+        continue
+      }
+      if (key != "timeframe") names[key] = 1
+      continue
+    }
+    if (incond) { cond = cond " " line; continue }
+    field = line; sub(/^[[:space:]]*(-[[:space:]]*)?/, "", field)
+    if (field ~ /^[A-Za-z0-9_.|-]+:/) {
+      sub(/:.*/, "", field); base = tolower(field); sub(/\|.*/, "", base)
+      nfields++
+      if (base !~ /^(hashes?|md5|sha1|sha256|sha512|imphash|ip|destinationip|sourceip|c-ip|cs-ip|queryname|destinationhostname|.*_ip|.*ipaddress|.*domain)$/) allind = 0
+    }
+  }
+  if (cond == "") missing = missing " condition"
+  if (missing != "") { print "FAIL\tblock " blk " missing:" missing; return }
+  gsub(/[^A-Za-z0-9_*]/, " ", cond)
+  n = split(cond, tokens, " ")
+  undefd = ""
+  for (i = 1; i <= n; i++) {
+    t = tokens[i]; w = tolower(t)
+    if (w ~ /^(and|or|not|of|all|them|count|by|near)$/ || t ~ /^[0-9]+$/) continue
+    if (t ~ /\*/) {
+      pre = t; sub(/\*.*/, "", pre); ok = 0
+      for (k in names) if (index(k, pre) == 1) ok = 1
+      if (!ok) undefd = undefd " " t
+    } else if (!(t in names)) undefd = undefd " " t
+  }
+  if (undefd != "") { print "FAIL\tblock " blk " has a condition that uses an undefined selection:" undefd; return }
+  if (nfields > 0 && allind) { print "WARN\tblock " blk " matches only hash, IP, or domain indicators"; return }
+  print "PASS\tblock " blk " has the required keys and a defined condition"
+}
+function reset() { delete top; delete detl; delete detind; nd = 0; indet = 0 }
+{ sub(/\r$/, "") }
+/^```/ {
+  if (inblk) { finish(); inblk = 0; next }
+  if ($0 ~ /^```(yaml|yml)[[:space:]]*$/) { inblk = 1; blk++; reset() }
+  next
+}
+inblk {
+  if ($0 ~ /^[A-Za-z_]+:/) { k = $0; sub(/:.*/, "", k); top[k] = 1; indet = (k == "detection"); next }
+  if (indet && $0 !~ /^[[:space:]]*(#.*)?$/) { match($0, /^[[:space:]]*/); nd++; detl[nd] = $0; detind[nd] = RLENGTH }
+}
+END { if (blk == 0) print "WARN\tno yaml block found in the detection" }
+AWK
+
+check_sigma() {
+  [ "$STAGE" = post ] || return 0
+  if [ ! -f "$DET" ]; then emit SKIP sigma "no detection"; return; fi
+  local lvl msg
+  while IFS=$'\t' read -r lvl msg; do
+    [ -n "$lvl" ] && emit "$lvl" sigma "$msg"
+  done < <(rd "$DET" | awk "$SIGMA_AWK")
+}
+
 # --- checks run ---
 check_presence
 check_status
@@ -207,6 +277,7 @@ if [ "$STAGE" = post ]; then
   check_story_ids
   check_verdict
   check_escalation
+  check_sigma
 fi
 check_attack
 check_placeholders
