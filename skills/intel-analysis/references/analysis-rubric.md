@@ -11,7 +11,7 @@ Apply after synthesis. This is a local workflow rubric, not an externally valida
 | Technical and operational relevance | Unsupported mappings/attribution or unsafe indicators | Supported findings with relevance gaps | Evidence-specific TTP/IOC/CVE treatment and conditional operational implications |
 
 **READY:** 8–10, no dimension at 0, no unresolved integrity defect.
-**LIMITED:** usable findings remain, but collection gaps prevent READY; identify the affected judgments and next collection action.
+**LIMITED:** usable findings remain, but collection gaps prevent READY; identify the affected judgments and next collection action. Aging or Historical tactical or operational intelligence (the shelf-life judgment in the analysis's Scope section) also caps the status at LIMITED unless the question is strategic.
 **INSUFFICIENT:** no supported answer to the central question, regardless of total.
 
 Integrity defects override the score: fabricated evidence/IOCs, circular reporting presented as independent corroboration, unsupported actor/CVE linkage, out-of-window events presented as current, or external reporting presented as local validation. Correct or remove these claims before handoff; do not merely label them LIMITED.
