@@ -6,7 +6,7 @@
 
 ## 1. Prior-hunt check
 
-Scan `./threat-hunting/hunt-logs/` and `./threat-hunting/hunt-reports/` for hunts that touched the same ATT&CK techniques or data sources. Reports and logs do not carry the technique list, so match through each prior slug's `./threat-hunting/hunt-plans/<prior-slug>-hunt-plan.md` Epic `### MITRE ATT&CK Mapping`.
+Scan `./threat-hunting/hunt-logs/` and `./threat-hunting/hunt-reports/` for hunts that touched the same ATT&CK techniques or data sources. Skip the current slug and any log whose `Results status` is `PENDING EXECUTION`; they hold no results. Reports and logs do not carry the technique list, so match through each prior slug's `./threat-hunting/hunt-plans/<prior-slug>-hunt-plan.md` Epic `### MITRE ATT&CK Mapping`.
 
 For each match, record one line in `Initial Research`:
 
@@ -26,7 +26,7 @@ If nothing matches, record `None found (no prior hunts in ./threat-hunting)`.
 
 ## 2. Known-good seeding
 
-Copy entries from matching prior logs' `## Known-Good / Exclusion List` into `Initial Research`, and list them on the Scope `Exclusions` line, each marked `from <slug>, reconfirm`. They are candidates, never approved exclusions: do not describe them as excluded from the hunt until the owner reconfirms, because an unconfirmed exclusion can hide a real finding.
+Copy entries from matching prior logs' `## Known-Good / Exclusion List` (only entries whose `Confirmed by` holds a real person or team, never `[PENDING EXECUTION]`) into `Initial Research`, and list them on the Scope `Exclusions` line, each marked `from <slug>, reconfirm`. They are candidates, never approved exclusions: do not describe them as excluded from the hunt until the owner reconfirms, because an unconfirmed exclusion can hide a real finding.
 
 ## 3. RFIs
 

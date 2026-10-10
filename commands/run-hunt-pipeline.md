@@ -21,7 +21,7 @@ Every skill in this pipeline is designed to proceed and annotate gaps (`[FILL IN
 
 ## Step 8: Final summary
 
-After all stages complete, print a summary listing every file path (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in. Tell the user that the hunt must now be run manually and that `/run-post-hunt` produces the detection, hunt report, and recorded validation:
+After all stages complete, print a summary listing every file path (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in. If `hunt-planner` reported the plan locked, or the hunt log already holds results, say so in the summary: label the hunt log as holding results instead of "(blank)", and note that the refreshed analysis and report are not reflected in the locked plan. Otherwise, tell the user that the hunt must now be run manually and that `/run-post-hunt` produces the detection, hunt report, and recorded validation:
 
 ```
 Planning complete for <slug>:

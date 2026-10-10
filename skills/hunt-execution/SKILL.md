@@ -23,7 +23,7 @@ Read `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`. It is required: if it is
 ## WORKSHEET mode
 
 1. **Re-run safety.** If the log exists and holds results (see Step 0), do not touch it. Report that results are already recorded and stop.
-2. Write `./threat-hunting/hunt-logs/<slug>-hunt-log.md` from the template below, one Story block per `## Story:` in the plan. Pre-fill from the plan: Story ID and title, planned query (the Story's `Detection Logic`), planned window (the Epic's `Scope > Time Window`), data sources and fields, and expected malicious and benign outcomes. Every result field reads `[PENDING EXECUTION]` and `Results status` is `PENDING EXECUTION`. Pre-fill the Known-Good list with any known-good items the plan's Initial Research names.
+2. Write `./threat-hunting/hunt-logs/<slug>-hunt-log.md` from the template below, one Story block per `## Story:` in the plan. Pre-fill from the plan: Story ID and title, planned query (the Story's `Detection Logic`), planned window (the Epic's `Scope > Time Window`), data sources and fields, and expected malicious and benign outcomes. Every result field reads `[PENDING EXECUTION]` and `Results status` is `PENDING EXECUTION`. Pre-fill the Known-Good list with any known-good items the plan's Initial Research names, as candidates only: put `[PENDING EXECUTION] (reconfirm, from <slug>)` in `Confirmed by` and do not treat them as applied exclusions until the hunter confirms them.
 3. Hand off: give the path, and tell the user to run the hunt in their own tools, record results in the log (or keep notes), then run `/run-post-hunt`.
 
 ## INTAKE mode
