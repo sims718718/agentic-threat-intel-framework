@@ -119,6 +119,58 @@ check_placeholders() {
   done
 }
 
+HIT_RE='\|[[:space:]]*(True positive|Undetermined)[[:space:]]*\|'
+
+check_story_ids() {
+  [ "$STAGE" = post ] || return 0
+  if [ "$HAS_RESULTS" != 1 ] || [ ! -f "$PLAN" ]; then emit SKIP story-ids "the hunt log holds no results, or the plan is missing"; return; fi
+  local planids logids id bad="" miss=""
+  planids=$(rd "$PLAN" | sed -n 's/^## Story: \[\(HUNT-[A-Za-z0-9-]*-S[0-9][0-9]*\)\].*/\1/p' | sort -u)
+  logids=$(rd "$LOG" | sed -n 's/^### \(HUNT-[A-Za-z0-9-]*-S[0-9][0-9]*\).*/\1/p' | sort -u)
+  for id in $logids; do printf '%s\n' "$planids" | grep -qx "$id" || bad="$bad $id"; done
+  for id in $planids; do printf '%s\n' "$logids" | grep -qx "$id" || miss="$miss $id"; done
+  if [ -n "$bad" ]; then emit FAIL story-ids "the hunt log has Story IDs that are not in the plan:$bad"; fi
+  if [ -n "$miss" ]; then emit WARN story-ids "plan Stories missing from the hunt log:$miss"; fi
+  if [ -z "$bad$miss" ]; then emit PASS story-ids "Story IDs agree ($(printf '%s\n' "$planids" | grep -c .) Stories)"; fi
+}
+
+cell() { # row column(2|3) : trimmed cell without markdown emphasis
+  printf '%s' "$1" | awk -F'|' -v c="$2" '{v=$c; gsub(/\*/,"",v); gsub(/^[[:space:]]+|[[:space:]]+$/,"",v); print v}'
+}
+check_verdict() {
+  [ "$STAGE" = post ] || return 0
+  if [ "$HAS_RESULTS" != 1 ]; then emit SKIP verdict-bound "the hunt log holds no results"; return; fi
+  local row verdict cov problems=""
+  row=$(rd "$LOG" | awk '/^## Hunt-Level Verdict and Coverage/{s=1; next} /^## /{s=0} s && /^\|/{n++; if(n==3){print; exit}}')
+  verdict=$(cell "$row" 2); cov=$(cell "$row" 3)
+  case "$verdict" in
+    Refuted*)
+      case "$cov" in Confirmed*) ;; *) problems="$problems coverage is '${cov:-missing}', not Confirmed;";; esac
+      if rd "$LOG" | grep -Eq '^\|[[:space:]]*Execution status[[:space:]]*\|[[:space:]]*(Not executed|Partial)'; then problems="$problems a Story is Not executed or Partial;"; fi
+      if rd "$LOG" | grep -Eq "$HIT_RE"; then problems="$problems a true-positive or Undetermined hit is recorded;"; fi
+      if [ -n "$problems" ]; then emit FAIL verdict-bound "Refuted is not allowed:$problems"
+      else emit PASS verdict-bound "Refuted with coverage Confirmed, every Story executed, no open hit"; fi
+      ;;
+    "") emit WARN verdict-bound "could not read the hunt-level verdict";;
+    *PENDING*) emit SKIP verdict-bound "the hunt-level verdict is still pending";;
+    *) emit PASS verdict-bound "hunt-level verdict '$verdict'; no Refuted bound to check";;
+  esac
+}
+
+check_escalation() {
+  [ "$STAGE" = post ] || return 0
+  if [ "$HAS_RESULTS" != 1 ]; then emit SKIP escalation "the hunt log holds no results"; return; fi
+  if rd "$LOG" | grep -Eq "$HIT_RE"; then
+    if rd "$LOG" | awk '/^## Outcome Candidates/{s=1; next} /^## /{s=0} s' | grep -qi 'Suspicious Security Event'; then
+      emit PASS escalation "a true-positive or Undetermined hit has a Suspicious Security Event candidate"
+    else
+      emit WARN escalation "a true-positive or Undetermined hit has no Suspicious Security Event outcome candidate"
+    fi
+  else
+    emit PASS escalation "no true-positive or Undetermined hit recorded"
+  fi
+}
+
 # --- checks run ---
 check_presence
 check_status
@@ -131,6 +183,9 @@ if [ "$STAGE" = post ]; then
   check_order hunt-report "hunt report" "$HREPORT"
   check_order detection "detection" "$DET"
   check_det_sections
+  check_story_ids
+  check_verdict
+  check_escalation
 fi
 check_placeholders
 

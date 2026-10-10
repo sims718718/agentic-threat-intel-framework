@@ -151,6 +151,42 @@ lint_section_order() {
   has "section-order: an extra section is allowed" "$m" '^PASS section-order hunt plan'
 }
 
+lint_story_ids() {
+  local b d m; b=$(lint post "$BASE/work" 2>&1)
+  has "story-ids: baseline agrees" "$b" '^PASS story-ids'
+  d=$(mut); printf '\n### HUNT-9999-S9: injected story\n' >> "$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  m=$(lint post "$d" 2>&1)
+  has "story-ids: unknown Story ID fails" "$m" '^FAIL story-ids .*HUNT-9999-S9'
+  only_new_fail "story-ids: adds only the story-ids FAIL" "$b" "$m" story-ids
+}
+lint_story_ids_skip_without_results() {
+  local d m; d=$(mut)
+  sedi "$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md" 's/^\(| *Results status *|\).*/\1 PENDING EXECUTION |/'
+  m=$(lint post "$d" 2>&1)
+  has "story-ids: SKIP when the log holds no results" "$m" '^SKIP story-ids'
+  has "verdict-bound: SKIP when the log holds no results" "$m" '^SKIP verdict-bound'
+  has "escalation: SKIP when the log holds no results" "$m" '^SKIP escalation'
+}
+lint_verdict_bound() {
+  local b d m f; b=$(lint post "$BASE/work" 2>&1); d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  awk '/^## Hunt-Level Verdict and Coverage/{s=1} /^## / && !/^## Hunt-Level/{s=0} s && /^\|/{n++; if(n==3){print "| **Refuted** | Unconfirmed | n/a |"; next}} {print}' "$f" > "$f.new" && mv "$f.new" "$f"
+  m=$(lint post "$d" 2>&1)
+  has "verdict-bound: Refuted with unconfirmed coverage fails" "$m" '^FAIL verdict-bound .*coverage'
+  only_new_fail "verdict-bound: adds only the verdict-bound FAIL" "$b" "$m" verdict-bound
+  d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  awk '/^## Hunt-Level Verdict and Coverage/{s=1} /^## / && !/^## Hunt-Level/{s=0} s && /^\|/{n++; if(n==3){print "| Refuted | Confirmed | n/a |"; next}} {print}' "$f" > "$f.new" && mv "$f.new" "$f"
+  printf '\n| H-9 | injected | Undetermined | none |\n' >> "$f"
+  m=$(lint post "$d" 2>&1)
+  has "verdict-bound: Refuted with an Undetermined hit fails" "$m" '^FAIL verdict-bound .*hit'
+}
+lint_escalation() {
+  local d m f; d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  printf '\n| H-9 | injected | True positive | none |\n' >> "$f"
+  sedi "$f" 's/Suspicious Security Event/Security Event/g'
+  m=$(lint post "$d" 2>&1)
+  has "escalation: a true-positive hit with no Suspicious Security Event candidate warns" "$m" '^WARN escalation'
+}
+
 # --- tests end ---
 
 main() {
