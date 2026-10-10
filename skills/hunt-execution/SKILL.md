@@ -34,24 +34,24 @@ Read `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`. It is required: if it is
 4. **Coverage check.** For each data source, record whether it returned events across the whole window searched. Coverage is `Confirmed` only if the hunter says so or shows it; anything else is `Unconfirmed`. A window shorter than the planned window is also `Unconfirmed` for the planned window; record the window actually achieved.
 5. **Triage every hit** with one disposition: `True positive`, `False positive`, `Benign`, or `Undetermined`. A hit the hunter did not triage is `Undetermined`. Never default a hit to benign.
 6. **Escalate first.** If any hit is `True positive` or `Undetermined`, tell the user immediately, before writing anything else, that this is a potential Suspicious Security Event to escalate to SOC / IR.
-7. **Verdicts**, per Story and for the hunt:
+7. **Verdicts.** Judge each Story on its own fields. The hunt-level verdict is Supported if any Story is Supported, Refuted only if every Story is Refuted, and Inconclusive otherwise:
 
 | Verdict | Condition |
 |---|---|
 | **Supported** | At least one hit is `True positive` and bears on the hypothesis |
-| **Refuted** | Every Story is `Executed`; every planned data source (the Story's `Planned data sources / fields`) was queried with coverage `Confirmed` over the planned window; result counts are provided for every Story; the result matches the plan's `Expected if benign`; no hit is `True positive` or `Undetermined`; and the hypothesis's Falsifiability was not scored 1 on the hypothesis rubric (a hypothesis that cannot be disproven cannot be Refuted). Any `Not provided` in queries, window, sources, counts, or coverage forces Inconclusive |
-| **Inconclusive** | Anything else: a Story `Not executed`, coverage `Unconfirmed`, a shorter window than planned, or an `Undetermined` hit. State which |
+| **Refuted** | The Story is `Executed`; every planned data source (the Story's `Planned data sources / fields`) was queried with coverage `Confirmed` over the planned window; result counts are provided for every Story; the result matches the plan's `Expected if benign`; no hit is `True positive` or `Undetermined`; and the hypothesis's Falsifiability was not scored 1 on the hypothesis rubric (a hypothesis that cannot be disproven cannot be Refuted). Any `Not provided` in queries, window, sources, counts, or coverage forces Inconclusive |
+| **Inconclusive** | Anything else: the Story is `Not executed`, coverage `Unconfirmed`, a shorter window than planned, an `Undetermined` hit, or a `True positive` that does not bear on the hypothesis. State which |
 
 A clean result is bounded by coverage. Never write "clean" or "no threat"; write "No evidence found in <sources> over <window>."
 
-8. **Set `Results status`:** `RECORDED` if every Story is `Executed`; `PARTIAL` if any Story is `Not executed` or `Partial`.
+8. **Set `Results status`:** `RECORDED` if every Story is `Executed`; `PARTIAL` if any Story is `Not executed` or `Partial`. If no Story is `Executed` or `Partial`, leave `Results status` as `PENDING EXECUTION`, record the unmapped text under *Deviations and New Questions*, and say that no results were recognised (standalone: ask the user to map them to Stories).
 9. **Outcome candidates.** List each applicable category with an evidence reference:
 
 | Category | Indicated by |
 |---|---|
 | Visibility Gap | Coverage `Unconfirmed`, a source returned no events, or a needed field is missing or unparsed |
 | Security Control Issue | The hunt exposed a control gap independent of detection coverage |
-| Detection Opportunity | The query ran, hits were triaged, and the logic could stand as a rule; or the plan expects an Analytics/Detection task and a validated query exists |
+| Detection Opportunity | The Story's query was `Executed` with coverage `Confirmed`, any hits were triaged, and the logic could stand as a rule; a plan's Analytics/Detection task alone is not enough |
 | Hunt Opportunity | The hunt surfaced a new hypothesis or question |
 | Suspicious Security Event | Any `True positive` or `Undetermined` hit |
 | Threat Intelligence Observable | A new indicator or technique not in the intel report |
@@ -102,7 +102,11 @@ Fixed section order; later stages read these headings.
 [Multi-line queries and evidence go here in fenced blocks, labelled by Story or Hit ID. Table cells above keep a one-line summary and a pointer to this block.]
 
 ## Hunt-Level Verdict and Coverage
-[Verdict; coverage per data source; window achieved vs planned; "No evidence found in ... over ..." when applicable.]
+| Verdict | Coverage | Window planned vs achieved |
+|---|---|---|
+| [PENDING EXECUTION] (Supported / Refuted / Inconclusive) | [PENDING EXECUTION] (Confirmed / Unconfirmed) | [PENDING EXECUTION] |
+
+[Per-source coverage and, when applicable, "No evidence found in ... over ...".]
 
 ## Outcome Candidates
 | Category | Evidence reference | Notes |
