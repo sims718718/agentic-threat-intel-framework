@@ -61,6 +61,50 @@ drift_section_order() {
   done
 }
 
+# ---------- baseline ----------
+SUBJECT=${TIH_SUBJECT:-"Scattered Spider help-desk social engineering used to reset MFA and take over accounts (CISA advisory AA23-320A)"}
+
+claude_run() { # prompt outfile : run claude headless in the current directory
+  MSYS_NO_PATHCONV=1 claude --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits -p "$1" < /dev/null > "$2" 2>&1
+}
+mk_baseline() {
+  if [ -f "$BASE/slug" ]; then echo "baseline exists: $BASE"; return 0; fi
+  mkdir -p "$BASE/work" || return 1
+  cd "$BASE/work" || return 1
+  echo "running the planning half (live research; this can take 15-30 minutes)..."
+  claude_run "Run the /run-hunt-pipeline command defined in $REPO/commands/run-hunt-pipeline.md for this input: $SUBJECT. Follow it exactly. It has no confirmation gates." "$BASE/pipeline.out"
+  local s
+  s=$(ls threat-hunting/hunt-plans/*-hunt-plan.md 2>/dev/null | head -1 | sed 's#.*/##; s#-hunt-plan\.md$##')
+  [ -n "$s" ] || { echo "pipeline produced no hunt plan; see $BASE/pipeline.out" >&2; return 1; }
+  local id first=1
+  {
+    echo "# TEST DATA: synthetic hunt results for $s. Not real findings."
+    echo "Hunter: test-harness. Platform: test SIEM. Dates executed: 2026-10-01."
+    for id in $(sed -n 's/^## Story: \[\(HUNT-[A-Za-z0-9-]*-S[0-9][0-9]*\)\].*/\1/p' "threat-hunting/hunt-plans/$s-hunt-plan.md"); do
+      echo; echo "## $id"
+      echo "Executed the planned query in full over the planned window. Queried the data sources named in the plan; coverage was confirmed for each."
+      if [ "$first" = 1 ]; then
+        echo "Result: 1 hit. Hit H1: help-desk ticket 4471, an MFA reset for a service-desk user. Reviewed with the ticket owner and confirmed as a legitimate change. Disposition: False positive."
+        first=0
+      else
+        echo "Result: 0 hits."
+      fi
+    done
+  } > "$BASE/results.md"
+  echo "running the post-hunt half..."
+  claude_run "Run the /run-post-hunt command defined in $REPO/commands/run-post-hunt.md with these arguments: $s $BASE/results.md . Follow it exactly." "$BASE/post.out"
+  [ -f "threat-hunting/hunt-reports/$s-hunt-report.md" ] || { echo "post-hunt produced no hunt report; see $BASE/post.out" >&2; return 1; }
+  echo "$s" > "$BASE/slug"
+  echo "baseline ready: $BASE (slug $s)"
+}
+need_baseline() {
+  [ -f "$BASE/slug" ] || { echo "no baseline at $BASE; run: scripts/test-checks.sh baseline" >&2; exit 2; }
+  SLUG=$(cat "$BASE/slug")
+}
+mut() { local d; d=$(mktemp -d "$BASE/mut.XXXXXX") && cp -r "$BASE/work/threat-hunting" "$d/" && echo "$d"; }
+sedi() { local f=$1; shift; sed "$@" "$f" > "$f.new" && mv "$f.new" "$f"; }
+lint() { bash "$REPO/scripts/check-contracts.sh" "$SLUG" "$1" "$2/threat-hunting"; }
+
 # --- tests end ---
 
 main() {
