@@ -19,6 +19,7 @@ You hand it a CVE, an actor name, an ATT&CK technique, a URL, a report file, or 
 - [How the pipeline maps to the Unified Threat Hunting Process](#how-the-pipeline-maps-to-the-unified-threat-hunting-process)
 - [Stage-by-stage walkthrough](#stage-by-stage-walkthrough)
 - [Quality gates](#quality-gates)
+- [Quality checks](#quality-checks)
 - [Running it](#running-it)
 - [Output convention](#output-convention)
 - [Installing](#installing)
@@ -325,6 +326,34 @@ Each stage has a gate that stops weak work from flowing downstream looking stron
 
 ---
 
+## Quality checks
+
+Both commands end with an advisory **Quality checks** step: a contract linter plus independent review agents. Nothing blocks, no existing artifact changes, and findings go to `./threat-hunting/quality/<slug>-quality.md` (the planning half writes the `Plan stage` section, `/run-post-hunt` the `Post stage` section).
+
+`scripts/check-contracts.sh <slug> <plan|post> [dir]` prints one `PASS|WARN|FAIL|SKIP` line per finding. It uses bash and standard tools only and never edits a file.
+
+| Check | What it looks at |
+|---|---|
+| `presence` | The stage's expected files, including HTML twins |
+| `section-order` | Required sections in the fixed order (`data/section-order.tsv`); extra sections are allowed. Each detection block must hold sections 1-10 |
+| `results-status` | The hunt log's `Results status` is `PENDING EXECUTION`, `RECORDED`, or `PARTIAL` |
+| `story-ids` | Story IDs in the hunt log exist in the plan |
+| `verdict-bound` | `Refuted` needs confirmed coverage, every Story executed, and no true-positive or `Undetermined` hit |
+| `escalation` | A true-positive or `Undetermined` hit has a Suspicious Security Event candidate |
+| `attack-ids` | ATT&CK IDs are in the bundled snapshot (`data/attack-enterprise-ids.tsv`); unknown or deprecated IDs warn |
+| `sigma` | The detection's Sigma has `title`, `logsource`, `detection`, `condition`, `level`, defined selections, and is not indicator-only |
+| `det-xref` | `DET-XXX` IDs agree across the detection, validation, and hunt report |
+| `language` | The hunt report avoids "clean", "no threat", and "environment is secure" |
+| `placeholders` | Counts of `[FILL IN]`, `Unknown`, and `[PENDING EXECUTION]` (information only) |
+
+Three read-only agents review the judgement-heavy artifacts and return a findings table (`Severity | Location | Issue | Suggested fix`): `intel-challenger` (analysis and report) and `plan-reviewer` (hunt plan) after the planning half, and `detection-reviewer` (detection) after `/run-post-hunt`. They advise; the skills' own gates and rubrics decide. If a session does not register the plugin's agents, the commands run the agent's instructions through a `general-purpose` agent and mark the heading.
+
+Limits: the ATT&CK file is a snapshot (`scripts/update-attack-ids.sh` regenerates it; maintainers only), so an unknown ID reads "not in ATT&CK vN", not "invalid". The Sigma check is structural, not a compiler.
+
+**Testing.** `scripts/test-checks.sh` builds a baseline by running the real commands in a scratch project (needs the `claude` CLI and network), then lints it and mutated copies, and dry-runs the agents and the commands' quality step. It never reads `examples/`. `scripts/test-checks.sh drift` runs offline and checks that `data/section-order.tsv` matches the skills' fenced templates.
+
+---
+
 ## Running it
 
 **Planning half, one input:**
@@ -381,6 +410,7 @@ Every stage writes to fixed paths inside **your** project, never inside this plu
 | detection-engineer | `./threat-hunting/detections/<slug>-detection.md` |
 | hunt-reporter | `./threat-hunting/hunt-reports/<slug>-hunt-report.md` (+ `.html`) |
 | hunt-validator | `./threat-hunting/validations/<slug>-validation.md` |
+| quality checks (advisory) | `./threat-hunting/quality/<slug>-quality.md` |
 
 The Markdown file is always the source of truth. The HTML twins (intel-report, hunt-planner, and hunt-reporter) are rendered in the same turn from a shared shell, for easy reading and sharing.
 
@@ -414,6 +444,9 @@ commands/
   run-post-hunt.md             Post-execution half: /run-post-hunt (needs hunt results)
 agents/
   intel-researcher.md          Subagent: researches one CTI angle with an evidence contract
+  intel-challenger.md          Reviewer: challenges the intel analysis and report (read-only)
+  plan-reviewer.md             Reviewer: re-scores and critiques the hunt plan (read-only)
+  detection-reviewer.md        Reviewer: checks the detection against the acceptance gate (read-only)
 skills/
   gather/                      Stage 0: environment profile
   intel-analysis/              Stage 1: evidence-backed analysis
@@ -432,6 +465,12 @@ skills/
   _shared/references/          html-report-shell.md (HTML twin template)
 scripts/
   validate-frontmatter.sh      Checks that a Markdown file's frontmatter fields are non-empty
+  check-contracts.sh           Advisory contract linter run by both commands
+  update-attack-ids.sh         Maintainer-only: regenerates data/attack-enterprise-ids.tsv from MITRE STIX
+  test-checks.sh               Tests: drift, baseline, linter mutations, agent and command dry runs
+data/
+  section-order.tsv            Required section order per artifact (checked against the skill templates)
+  attack-enterprise-ids.tsv    Snapshot of ATT&CK Enterprise technique IDs and status
 examples/                      A sample run for pan-os-cve-2026-0257, one file per stage
 ```
 
@@ -442,6 +481,7 @@ examples/                      A sample run for pan-os-cve-2026-0257, one file p
 - **The hunt itself is yours.** The pipeline plans, specifies, and documents. Executing queries in your SIEM/EDR and running attack simulations are human steps.
 - **No live integrations.** There are no custom MCP tools and no SIEM/API connections. Intel research uses built-in web search and fetch against a static, curated source list.
 - **No hooks.**
+- **Quality checks are advisory.** They report; they never block a command or edit an artifact.
 - **No confirmation gates** between stages in `/run-hunt-pipeline`, including the non-interactive `gather` step. `/run-post-hunt` has exactly one gate: it stops if no hunt results are supplied.
 - **External reporting is not local validation.** Findings describe what sources report. They say nothing about whether the activity is in your environment or whether you would see it until `hunt-validator` shows it.
 - **Scores are workflow conventions**, not externally validated measures and not probabilities of correctness.
