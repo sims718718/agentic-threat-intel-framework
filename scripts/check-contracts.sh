@@ -262,6 +262,36 @@ check_sigma() {
   done < <(rd "$DET" | awk "$SIGMA_AWK")
 }
 
+check_det_xref() {
+  [ "$STAGE" = post ] || return 0
+  if [ ! -f "$DET" ]; then emit SKIP det-xref "no detection"; return; fi
+  local dids id f bad="" first
+  dids=$(rd "$DET" | sed -n 's/^## \(DET-[A-Za-z0-9]*\).*/\1/p' | sort -u)
+  for f in "$VAL" "$HREPORT"; do
+    [ -f "$f" ] || continue
+    for id in $(rd "$f" | grep -oE 'DET-[A-Za-z0-9]+' | sort -u); do
+      printf '%s\n' "$dids" | grep -qx "$id" || bad="$bad $(basename "$f"):$id"
+    done
+  done
+  if [ -n "$bad" ]; then emit FAIL det-xref "DET IDs not defined in the detection:$bad"
+  else emit PASS det-xref "DET IDs agree across the detection, validation, and hunt report"; fi
+  if [ -f "$HREPORT" ] && [ -f "$VAL" ]; then
+    first=$(rd "$HREPORT" | awk '/^## Validation/{s=1; next} /^## /{s=0} s && NF{print; exit}')
+    if [ "$first" = "Pending hunt-validator" ]; then
+      emit WARN det-xref "the hunt report's Validation section is still 'Pending hunt-validator' although a validation file exists"
+    fi
+  fi
+}
+
+check_language() {
+  [ "$STAGE" = post ] || return 0
+  if [ ! -f "$HREPORT" ]; then emit SKIP language "no hunt report"; return; fi
+  local hits
+  hits=$(rd "$HREPORT" | grep -v 'A clean result is bounded' | grep -inwE 'clean|no threat|environment is secure' | head -3 | tr '\n' ';')
+  if [ -n "$hits" ]; then emit WARN language "the hunt report uses a phrase the framework avoids (line: text): $hits"
+  else emit PASS language "no banned phrasing in the hunt report"; fi
+}
+
 # --- checks run ---
 check_presence
 check_status
@@ -278,6 +308,8 @@ if [ "$STAGE" = post ]; then
   check_verdict
   check_escalation
   check_sigma
+  check_det_xref
+  check_language
 fi
 check_attack
 check_placeholders

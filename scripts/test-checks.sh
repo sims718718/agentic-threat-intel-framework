@@ -274,6 +274,36 @@ EOF
   has "sigma forms: an indicator-only rule warns" "$m" '^WARN sigma block 3 .*indicators'
 }
 
+lint_det_xref() {
+  local det="$BASE/work/threat-hunting/detections/$SLUG-detection.md"
+  if [ ! -f "$det" ]; then
+    local b; b=$(lint post "$BASE/work" 2>&1)
+    has "det-xref: SKIP when the baseline has no detection" "$b" '^SKIP det-xref'
+    return
+  fi
+  local b d m f; b=$(lint post "$BASE/work" 2>&1)
+  has "det-xref: baseline IDs agree" "$b" '^PASS det-xref'
+  d=$(mut); f="$d/threat-hunting/validations/$SLUG-validation.md"
+  awk '!d && sub(/DET-[A-Za-z0-9]+/,"DET-999"){d=1} {print}' "$f" > "$f.new" && mv "$f.new" "$f"
+  m=$(lint post "$d" 2>&1)
+  has "det-xref: a validation DET ID absent from the detection fails" "$m" '^FAIL det-xref .*DET-999'
+  only_new_fail "det-xref: adds only the det-xref FAIL" "$b" "$m" det-xref
+}
+lint_det_xref_stale_validation() {
+  local d m f; d=$(mut); f="$d/threat-hunting/hunt-reports/$SLUG-hunt-report.md"
+  awk '/^## Validation/{print; print "Pending hunt-validator"; s=1; next} /^## /{s=0} !s{print}' "$f" > "$f.new" && mv "$f.new" "$f"
+  m=$(lint post "$d" 2>&1)
+  has "det-xref: a Validation section left at the placeholder warns" "$m" '^WARN det-xref .*Pending hunt-validator'
+}
+lint_language() {
+  local b d m; b=$(lint post "$BASE/work" 2>&1)
+  has "language: the baseline report has no banned phrase" "$b" '^(PASS|WARN) language'
+  d=$(mut); printf '\nThe environment is clean.\n' >> "$d/threat-hunting/hunt-reports/$SLUG-hunt-report.md"
+  m=$(lint post "$d" 2>&1)
+  has "language: 'clean' in the report warns" "$m" '^WARN language'
+  [ -z "$(printf '%s\n' "$m" | fail_ids)" ] && ok "language: a banned phrase is a WARN, not a FAIL" || bad "language: a banned phrase is a WARN, not a FAIL"
+}
+
 # --- tests end ---
 
 main() {
