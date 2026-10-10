@@ -327,6 +327,33 @@ agents_dry_run() {
   if [ -z "$(find "$d" -type f -newer "$marker" ! -name marker 2>/dev/null)" ]; then ok "agents wrote no files"; else bad "agents wrote no files" "$(find "$d" -type f -newer "$marker" ! -name marker)"; fi
 }
 
+wiring_static() {
+  local f p
+  for f in run-hunt-pipeline run-post-hunt; do
+    p="$REPO/commands/$f.md"
+    grep -q 'scripts/check-contracts.sh' "$p" && ok "$f: runs the linter" || bad "$f: runs the linter"
+    grep -q 'quality/<slug>-quality.md' "$p" && ok "$f: writes the quality file" || bad "$f: writes the quality file"
+    grep -qi 'never fails the command' "$p" && ok "$f: quality failures do not fail the command" || bad "$f: quality failures do not fail the command"
+    grep -q '^Quality:' "$p" && ok "$f: summary has a Quality line" || bad "$f: summary has a Quality line"
+    grep -q 'general-purpose' "$p" && ok "$f: has the agent-unavailable fallback" || bad "$f: has the agent-unavailable fallback"
+  done
+  grep -q 'intel-challenger' "$REPO/commands/run-hunt-pipeline.md" && grep -q 'plan-reviewer' "$REPO/commands/run-hunt-pipeline.md" && ok "run-hunt-pipeline: dispatches intel-challenger and plan-reviewer" || bad "run-hunt-pipeline: dispatches intel-challenger and plan-reviewer"
+  grep -q 'detection-reviewer' "$REPO/commands/run-post-hunt.md" && ok "run-post-hunt: dispatches detection-reviewer" || bad "run-post-hunt: dispatches detection-reviewer"
+}
+wiring_dry_run() {
+  local d q prev
+  d=$(mut); q="$d/threat-hunting/quality/$SLUG-quality.md"
+  (cd "$d" && MSYS_NO_PATHCONV=1 claude --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits --allowedTools 'Bash(bash *check-contracts.sh*)' -p "All earlier steps of $REPO/commands/run-hunt-pipeline.md are complete for slug $SLUG. Perform only its final Quality checks step, then print the Quality line of the summary." < /dev/null > "$d/plan.out" 2>&1)
+  [ -f "$q" ] && ok "quality file written by the planning command" || { bad "quality file written by the planning command"; return; }
+  has "quality file has a Plan stage section" "$(cat "$q")" '^## Plan stage'
+  has "quality file holds the linter output" "$(cat "$q")" '^SUMMARY pass='
+  prev=$(awk '/^## Plan stage/{s=1; next} /^## /{s=0} s' "$q" | grep -v '^[[:space:]]*$' | md5sum)
+  (cd "$d" && MSYS_NO_PATHCONV=1 claude --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits --allowedTools 'Bash(bash *check-contracts.sh*)' -p "All earlier steps of $REPO/commands/run-post-hunt.md are complete for slug $SLUG. Perform only its final Quality checks step, then print the Quality line of the summary." < /dev/null > "$d/post.out" 2>&1)
+  has "quality file gains a Post stage section" "$(cat "$q")" '^## Post stage'
+  has "the Plan stage section is still present" "$(cat "$q")" '^## Plan stage'
+  [ "$prev" = "$(awk '/^## Plan stage/{s=1; next} /^## /{s=0} s' "$q" | grep -v '^[[:space:]]*$' | md5sum)" ] && ok "the Post stage run left the Plan stage section unchanged" || bad "the Post stage run left the Plan stage section unchanged"
+}
+
 # --- tests end ---
 
 main() {

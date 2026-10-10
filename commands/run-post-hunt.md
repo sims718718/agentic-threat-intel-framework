@@ -1,6 +1,7 @@
 ---
 description: Run the post-execution half of the pipeline after a human has run the hunt — record the results, build the detection, write the hunt report, and record validation. Requires hunt results.
 argument-hint: "[slug] [path to filled hunt log or results file, or pasted results]"
+allowed-tools: Bash(bash *check-contracts.sh*)
 ---
 
 Run the post-hunt stages of the threat-intel-hunt-framework against the hunt results in `$ARGUMENTS` (a slug, plus a path to the filled hunt log or a results file, or pasted results). The hunt itself is manual: this command never runs queries or attack simulations, and it never invents results.
@@ -13,6 +14,8 @@ Run the post-hunt stages of the threat-intel-hunt-framework against the hunt res
 4. **Invoke the `detection-engineer` skill only if** the hunt log's Outcome Candidates include Detection Opportunity or any hit exists. Otherwise skip it and state the reason in the summary. Wait for `./threat-hunting/detections/<slug>-detection.md`.
 5. **Invoke the `hunt-reporter` skill.** Wait for `./threat-hunting/hunt-reports/<slug>-hunt-report.md` and its `.html` twin.
 6. **Invoke the `hunt-validator` skill.** With recorded results it runs in RECORD mode: it documents typed outcomes, and writes its result back into the detection (if one exists) and the hunt report. Validation test fields stay `[PENDING EXECUTION]` unless the user also supplied test results.
+
+7. **Quality checks (advisory).** Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/check-contracts.sh" <slug> post ./threat-hunting` and keep its output verbatim. If `./threat-hunting/detections/<slug>-detection.md` exists, dispatch the `detection-reviewer` agent with the slug and the project directory; otherwise record `SKIP no detection` under its heading and say so in the summary. If the agent type is not registered in the session, read its file under `${CLAUDE_PLUGIN_ROOT}/agents/` and run a `general-purpose` agent with that file's instructions, read-only, and mark the heading `[general-purpose fallback]`. Write `./threat-hunting/quality/<slug>-quality.md`: create it with a `# Quality Checks: <slug>` title if absent, then add or replace only the `## Post stage` section, laid out as `Run: <date>`, `### Contract checks` (the linter output), and `### detection-reviewer`. Leave a `## Plan stage` section untouched. If the script cannot run or the agent cannot be run at all, write `SKIP <reason>` under that heading and continue. A quality-check failure never fails the command, never edits another artifact, and adds no confirmation gate. If the agent returns free text instead of a table, paste it under its heading marked `[unstructured]`.
 
 ## Partial results and re-runs
 
@@ -28,5 +31,6 @@ Hunt Log:     ./threat-hunting/hunt-logs/<slug>-hunt-log.md        (verdict: <ve
 Detection:    ./threat-hunting/detections/<slug>-detection.md      (or: skipped — <reason>)
 Hunt Report:  ./threat-hunting/hunt-reports/<slug>-hunt-report.md
 Validation:   ./threat-hunting/validations/<slug>-validation.md
+Quality:      <pass> pass, <warn> warn, <fail> fail, <skip> skip; High findings: detection-reviewer <n or skipped>; details ./threat-hunting/quality/<slug>-quality.md
 Pending:      <for example, the validation test has not been run>
 ```
