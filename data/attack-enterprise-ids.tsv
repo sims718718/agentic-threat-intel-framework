@@ -1,0 +1,859 @@
+# ATT&CK Enterprise v19.2 generated 2026-10-10
+T1001	Data Obfuscation	current
+T1001.001	Junk Data	current
+T1001.002	Steganography	current
+T1001.003	Protocol or Service Impersonation	current
+T1002	Data Compressed	revoked
+T1003	OS Credential Dumping	current
+T1003.001	LSASS Memory	current
+T1003.002	Security Account Manager	current
+T1003.003	NTDS	current
+T1003.004	LSA Secrets	current
+T1003.005	Cached Domain Credentials	current
+T1003.006	DCSync	current
+T1003.007	Proc Filesystem	current
+T1003.008	/etc/passwd and /etc/shadow	current
+T1004	Winlogon Helper DLL	revoked
+T1005	Data from Local System	current
+T1006	Direct Volume Access	current
+T1007	System Service Discovery	current
+T1008	Fallback Channels	current
+T1009	Binary Padding	revoked
+T1010	Application Window Discovery	current
+T1011	Exfiltration Over Other Network Medium	current
+T1011.001	Exfiltration Over Bluetooth	current
+T1012	Query Registry	current
+T1013	Port Monitors	revoked
+T1014	Rootkit	current
+T1015	Accessibility Features	revoked
+T1016	System Network Configuration Discovery	current
+T1016.001	Internet Connection Discovery	current
+T1016.002	Wi-Fi Discovery	current
+T1017	Application Deployment Software	revoked
+T1018	Remote System Discovery	current
+T1019	System Firmware	revoked
+T1020	Automated Exfiltration	current
+T1020.001	Traffic Duplication	current
+T1021	Remote Services	current
+T1021.001	Remote Desktop Protocol	current
+T1021.002	SMB/Windows Admin Shares	current
+T1021.003	Distributed Component Object Model	current
+T1021.004	SSH	current
+T1021.005	VNC	current
+T1021.006	Windows Remote Management	current
+T1021.007	Cloud Services	current
+T1021.008	Direct Cloud VM Connections	current
+T1022	Data Encrypted	revoked
+T1023	Shortcut Modification	revoked
+T1024	Custom Cryptographic Protocol	revoked
+T1025	Data from Removable Media	current
+T1026	Multiband Communication	deprecated
+T1027	Obfuscated Files or Information	current
+T1027.001	Binary Padding	current
+T1027.002	Software Packing	current
+T1027.003	Steganography	current
+T1027.004	Compile After Delivery	current
+T1027.005	Indicator Removal from Tools	current
+T1027.006	HTML Smuggling	current
+T1027.007	Dynamic API Resolution	current
+T1027.008	Stripped Payloads	current
+T1027.009	Embedded Payloads	current
+T1027.010	Command Obfuscation	current
+T1027.011	Fileless Storage	current
+T1027.012	LNK Icon Smuggling	current
+T1027.013	Encrypted/Encoded File	current
+T1027.014	Polymorphic Code	current
+T1027.015	Compression	current
+T1027.016	Junk Code Insertion	current
+T1027.017	SVG Smuggling	current
+T1027.018	Invisible Unicode	current
+T1028	Windows Remote Management	revoked
+T1029	Scheduled Transfer	current
+T1030	Data Transfer Size Limits	current
+T1031	Modify Existing Service	revoked
+T1032	Standard Cryptographic Protocol	revoked
+T1033	System Owner/User Discovery	current
+T1034	Path Interception	deprecated
+T1035	Service Execution	revoked
+T1036	Masquerading	current
+T1036.001	Invalid Code Signature	current
+T1036.002	Right-to-Left Override	current
+T1036.003	Rename Legitimate Utilities	current
+T1036.004	Masquerade Task or Service	current
+T1036.005	Match Legitimate Resource Name or Location	current
+T1036.006	Space after Filename	current
+T1036.007	Double File Extension	current
+T1036.008	Masquerade File Type	current
+T1036.009	Break Process Trees	current
+T1036.010	Masquerade Account Name	current
+T1036.011	Overwrite Process Arguments	current
+T1036.012	Browser Fingerprint	current
+T1037	Boot or Logon Initialization Scripts	current
+T1037.001	Logon Script (Windows)	current
+T1037.002	Login Hook	current
+T1037.003	Network Logon Script	current
+T1037.004	RC Scripts	current
+T1037.005	Startup Items	current
+T1038	DLL Search Order Hijacking	revoked
+T1039	Data from Network Shared Drive	current
+T1040	Network Sniffing	current
+T1041	Exfiltration Over C2 Channel	current
+T1042	Change Default File Association	revoked
+T1043	Commonly Used Port	deprecated
+T1044	File System Permissions Weakness	revoked
+T1045	Software Packing	revoked
+T1046	Network Service Discovery	current
+T1047	Windows Management Instrumentation	current
+T1048	Exfiltration Over Alternative Protocol	current
+T1048.001	Exfiltration Over Symmetric Encrypted Non-C2 Protocol	current
+T1048.002	Exfiltration Over Asymmetric Encrypted Non-C2 Protocol	current
+T1048.003	Exfiltration Over Unencrypted Non-C2 Protocol	current
+T1049	System Network Connections Discovery	current
+T1050	New Service	revoked
+T1051	Shared Webroot	deprecated
+T1052	Exfiltration Over Physical Medium	current
+T1052.001	Exfiltration over USB	current
+T1053	Scheduled Task/Job	current
+T1053.001	At (Linux)	revoked
+T1053.002	At	current
+T1053.003	Cron	current
+T1053.004	Launchd	deprecated
+T1053.005	Scheduled Task	current
+T1053.006	Systemd Timers	current
+T1053.007	Container Orchestration Job	current
+T1054	Indicator Blocking	revoked
+T1055	Process Injection	current
+T1055.001	Dynamic-link Library Injection	current
+T1055.002	Portable Executable Injection	current
+T1055.003	Thread Execution Hijacking	current
+T1055.004	Asynchronous Procedure Call	current
+T1055.005	Thread Local Storage	current
+T1055.008	Ptrace System Calls	current
+T1055.009	Proc Memory	current
+T1055.011	Extra Window Memory Injection	current
+T1055.012	Process Hollowing	current
+T1055.013	Process Doppelgänging	current
+T1055.014	VDSO Hijacking	current
+T1055.015	ListPlanting	current
+T1056	Input Capture	current
+T1056.001	Keylogging	current
+T1056.002	GUI Input Capture	current
+T1056.003	Web Portal Capture	current
+T1056.004	Credential API Hooking	current
+T1057	Process Discovery	current
+T1058	Service Registry Permissions Weakness	revoked
+T1059	Command and Scripting Interpreter	current
+T1059.001	PowerShell	current
+T1059.002	AppleScript	current
+T1059.003	Windows Command Shell	current
+T1059.004	Unix Shell	current
+T1059.005	Visual Basic	current
+T1059.006	Python	current
+T1059.007	JavaScript	current
+T1059.008	Network Device CLI	current
+T1059.009	Cloud API	current
+T1059.010	AutoHotKey & AutoIT	current
+T1059.011	Lua	current
+T1059.012	Hypervisor CLI	current
+T1059.013	Container CLI/API	current
+T1060	Registry Run Keys / Startup Folder	revoked
+T1061	Graphical User Interface	deprecated
+T1062	Hypervisor	deprecated
+T1063	Security Software Discovery	revoked
+T1064	Scripting	deprecated
+T1065	Uncommonly Used Port	revoked
+T1066	Indicator Removal from Tools	revoked
+T1067	Bootkit	revoked
+T1068	Exploitation for Privilege Escalation	current
+T1069	Permission Groups Discovery	current
+T1069.001	Local Groups	current
+T1069.002	Domain Groups	current
+T1069.003	Cloud Groups	current
+T1070	Indicator Removal	current
+T1070.001	Clear Windows Event Logs	revoked
+T1070.002	Clear Linux or Mac System Logs	revoked
+T1070.003	Clear Command History	current
+T1070.004	File Deletion	current
+T1070.005	Network Share Connection Removal	current
+T1070.006	Timestomp	current
+T1070.007	Clear Network Connection History and Configurations	current
+T1070.008	Clear Mailbox Data	current
+T1070.009	Clear Persistence	current
+T1070.010	Relocate Malware	current
+T1071	Application Layer Protocol	current
+T1071.001	Web Protocols	current
+T1071.002	File Transfer Protocols	current
+T1071.003	Mail Protocols	current
+T1071.004	DNS	current
+T1071.005	Publish/Subscribe Protocols	current
+T1072	Software Deployment Tools	current
+T1073	DLL Side-Loading	revoked
+T1074	Data Staged	current
+T1074.001	Local Data Staging	current
+T1074.002	Remote Data Staging	current
+T1075	Pass the Hash	revoked
+T1076	Remote Desktop Protocol	revoked
+T1077	Windows Admin Shares	revoked
+T1078	Valid Accounts	current
+T1078.001	Default Accounts	current
+T1078.002	Domain Accounts	current
+T1078.003	Local Accounts	current
+T1078.004	Cloud Accounts	current
+T1079	Multilayer Encryption	revoked
+T1080	Taint Shared Content	current
+T1081	Credentials in Files	revoked
+T1082	System Information Discovery	current
+T1083	File and Directory Discovery	current
+T1084	Windows Management Instrumentation Event Subscription	revoked
+T1085	Rundll32	revoked
+T1086	PowerShell	revoked
+T1087	Account Discovery	current
+T1087.001	Local Account	current
+T1087.002	Domain Account	current
+T1087.003	Email Account	current
+T1087.004	Cloud Account	current
+T1088	Bypass User Account Control	revoked
+T1089	Disabling Security Tools	revoked
+T1090	Proxy	current
+T1090.001	Internal Proxy	current
+T1090.002	External Proxy	current
+T1090.003	Multi-hop Proxy	current
+T1090.004	Domain Fronting	current
+T1091	Replication Through Removable Media	current
+T1092	Communication Through Removable Media	current
+T1093	Process Hollowing	revoked
+T1094	Custom Command and Control Protocol	revoked
+T1095	Non-Application Layer Protocol	current
+T1096	NTFS File Attributes	revoked
+T1097	Pass the Ticket	revoked
+T1098	Account Manipulation	current
+T1098.001	Additional Cloud Credentials	current
+T1098.002	Additional Email Delegate Permissions	current
+T1098.003	Additional Cloud Roles	current
+T1098.004	SSH Authorized Keys	current
+T1098.005	Device Registration	current
+T1098.006	Additional Container Cluster Roles	current
+T1098.007	Additional Local or Domain Groups	current
+T1099	Timestomp	revoked
+T1100	Web Shell	revoked
+T1101	Security Support Provider	revoked
+T1102	Web Service	current
+T1102.001	Dead Drop Resolver	current
+T1102.002	Bidirectional Communication	current
+T1102.003	One-Way Communication	current
+T1103	AppInit DLLs	revoked
+T1104	Multi-Stage Channels	current
+T1105	Ingress Tool Transfer	current
+T1106	Native API	current
+T1107	File Deletion	revoked
+T1108	Redundant Access	deprecated
+T1109	Component Firmware	revoked
+T1110	Brute Force	current
+T1110.001	Password Guessing	current
+T1110.002	Password Cracking	current
+T1110.003	Password Spraying	current
+T1110.004	Credential Stuffing	current
+T1111	Multi-Factor Authentication Interception	current
+T1112	Modify Registry	current
+T1113	Screen Capture	current
+T1114	Email Collection	current
+T1114.001	Local Email Collection	current
+T1114.002	Remote Email Collection	current
+T1114.003	Email Forwarding Rule	current
+T1115	Clipboard Data	current
+T1116	Code Signing	revoked
+T1117	Regsvr32	revoked
+T1118	InstallUtil	revoked
+T1119	Automated Collection	current
+T1120	Peripheral Device Discovery	current
+T1121	Regsvcs/Regasm	revoked
+T1122	Component Object Model Hijacking	revoked
+T1123	Audio Capture	current
+T1124	System Time Discovery	current
+T1125	Video Capture	current
+T1126	Network Share Connection Removal	revoked
+T1127	Trusted Developer Utilities Proxy Execution	current
+T1127.001	MSBuild	current
+T1127.002	ClickOnce	current
+T1127.003	JamPlus	current
+T1128	Netsh Helper DLL	revoked
+T1129	Shared Modules	current
+T1130	Install Root Certificate	revoked
+T1131	Authentication Package	revoked
+T1132	Data Encoding	current
+T1132.001	Standard Encoding	current
+T1132.002	Non-Standard Encoding	current
+T1133	External Remote Services	current
+T1134	Access Token Manipulation	current
+T1134.001	Token Impersonation/Theft	current
+T1134.002	Create Process with Token	current
+T1134.003	Make and Impersonate Token	current
+T1134.004	Parent PID Spoofing	current
+T1134.005	SID-History Injection	current
+T1135	Network Share Discovery	current
+T1136	Create Account	current
+T1136.001	Local Account	current
+T1136.002	Domain Account	current
+T1136.003	Cloud Account	current
+T1137	Office Application Startup	current
+T1137.001	Office Template Macros	current
+T1137.002	Office Test	current
+T1137.003	Outlook Forms	current
+T1137.004	Outlook Home Page	current
+T1137.005	Outlook Rules	current
+T1137.006	Add-ins	current
+T1138	Application Shimming	revoked
+T1139	Bash History	revoked
+T1140	Deobfuscate/Decode Files or Information	current
+T1141	Input Prompt	revoked
+T1142	Keychain	revoked
+T1143	Hidden Window	revoked
+T1144	Gatekeeper Bypass	revoked
+T1145	Private Keys	revoked
+T1146	Clear Command History	revoked
+T1147	Hidden Users	revoked
+T1148	HISTCONTROL	revoked
+T1149	LC_MAIN Hijacking	deprecated
+T1150	Plist Modification	revoked
+T1151	Space after Filename	revoked
+T1152	Launchctl	revoked
+T1153	Source	deprecated
+T1154	Trap	revoked
+T1155	AppleScript	revoked
+T1156	Malicious Shell Modification	revoked
+T1157	Dylib Hijacking	revoked
+T1158	Hidden Files and Directories	revoked
+T1159	Launch Agent	revoked
+T1160	Launch Daemon	revoked
+T1161	LC_LOAD_DYLIB Addition	revoked
+T1162	Login Item	revoked
+T1163	Rc.common	revoked
+T1164	Re-opened Applications	revoked
+T1165	Startup Items	revoked
+T1166	Setuid and Setgid	revoked
+T1167	Securityd Memory	revoked
+T1168	Local Job Scheduling	revoked
+T1169	Sudo	revoked
+T1170	Mshta	revoked
+T1171	LLMNR/NBT-NS Poisoning and Relay	revoked
+T1172	Domain Fronting	revoked
+T1173	Dynamic Data Exchange	revoked
+T1174	Password Filter DLL	revoked
+T1175	Component Object Model and Distributed COM	deprecated
+T1176	Software Extensions	current
+T1176.001	Browser Extensions	current
+T1176.002	IDE Extensions	current
+T1177	LSASS Driver	revoked
+T1178	SID-History Injection	revoked
+T1179	Hooking	revoked
+T1180	Screensaver	revoked
+T1181	Extra Window Memory Injection	revoked
+T1182	AppCert DLLs	revoked
+T1183	Image File Execution Options Injection	revoked
+T1184	SSH Hijacking	revoked
+T1185	Browser Session Hijacking	current
+T1186	Process Doppelgänging	revoked
+T1187	Forced Authentication	current
+T1188	Multi-hop Proxy	revoked
+T1189	Drive-by Compromise	current
+T1190	Exploit Public-Facing Application	current
+T1191	CMSTP	revoked
+T1192	Spearphishing Link	revoked
+T1193	Spearphishing Attachment	revoked
+T1194	Spearphishing via Service	revoked
+T1195	Supply Chain Compromise	current
+T1195.001	Compromise Software Dependencies and Development Tools	current
+T1195.002	Compromise Software Supply Chain	current
+T1195.003	Compromise Hardware Supply Chain	current
+T1196	Control Panel Items	revoked
+T1197	BITS Jobs	current
+T1198	SIP and Trust Provider Hijacking	revoked
+T1199	Trusted Relationship	current
+T1200	Hardware Additions	current
+T1201	Password Policy Discovery	current
+T1202	Indirect Command Execution	current
+T1203	Exploitation for Client Execution	current
+T1204	User Execution	current
+T1204.001	Malicious Link	current
+T1204.002	Malicious File	current
+T1204.003	Malicious Image	current
+T1204.004	Malicious Copy and Paste	current
+T1204.005	Malicious Library	current
+T1205	Traffic Signaling	current
+T1205.001	Port Knocking	current
+T1205.002	Socket Filters	current
+T1206	Sudo Caching	revoked
+T1207	Rogue Domain Controller	current
+T1208	Kerberoasting	revoked
+T1209	Time Providers	revoked
+T1210	Exploitation of Remote Services	current
+T1211	Exploitation for Stealth	current
+T1212	Exploitation for Credential Access	current
+T1213	Data from Information Repositories	current
+T1213.001	Confluence	current
+T1213.002	Sharepoint	current
+T1213.003	Code Repositories	current
+T1213.004	Customer Relationship Management Software	current
+T1213.005	Messaging Applications	current
+T1213.006	Databases	current
+T1214	Credentials in Registry	revoked
+T1215	Kernel Modules and Extensions	revoked
+T1216	System Script Proxy Execution	current
+T1216.001	PubPrn	current
+T1216.002	SyncAppvPublishingServer	current
+T1217	Browser Information Discovery	current
+T1218	System Binary Proxy Execution	current
+T1218.001	Compiled HTML File	current
+T1218.002	Control Panel	current
+T1218.003	CMSTP	current
+T1218.004	InstallUtil	current
+T1218.005	Mshta	current
+T1218.007	Msiexec	current
+T1218.008	Odbcconf	current
+T1218.009	Regsvcs/Regasm	current
+T1218.010	Regsvr32	current
+T1218.011	Rundll32	current
+T1218.012	Verclsid	current
+T1218.013	Mavinject	current
+T1218.014	MMC	current
+T1218.015	Electron Applications	current
+T1219	Remote Access Tools	current
+T1219.001	IDE Tunneling	current
+T1219.002	Remote Desktop Software	current
+T1219.003	Remote Access Hardware	current
+T1220	XSL Script Processing	current
+T1221	Template Injection	current
+T1222	File and Directory Permissions Modification	current
+T1222.001	Windows Permissions	current
+T1222.002	Linux and Mac Permissions	current
+T1223	Compiled HTML File	revoked
+T1480	Execution Guardrails	current
+T1480.001	Environmental Keying	current
+T1480.002	Mutual Exclusion	current
+T1482	Domain Trust Discovery	current
+T1483	Domain Generation Algorithms	revoked
+T1484	Domain or Tenant Policy Modification	current
+T1484.001	Group Policy Modification	current
+T1484.002	Trust Modification	current
+T1485	Data Destruction	current
+T1485.001	Lifecycle-Triggered Deletion	current
+T1486	Data Encrypted for Impact	current
+T1487	Disk Structure Wipe	revoked
+T1488	Disk Content Wipe	revoked
+T1489	Service Stop	current
+T1490	Inhibit System Recovery	current
+T1491	Defacement	current
+T1491.001	Internal Defacement	current
+T1491.002	External Defacement	current
+T1492	Stored Data Manipulation	revoked
+T1493	Transmitted Data Manipulation	revoked
+T1494	Runtime Data Manipulation	revoked
+T1495	Firmware Corruption	current
+T1496	Resource Hijacking	current
+T1496.001	Compute Hijacking	current
+T1496.002	Bandwidth Hijacking	current
+T1496.003	SMS Pumping	current
+T1496.004	Cloud Service Hijacking	current
+T1497	Virtualization/Sandbox Evasion	current
+T1497.001	System Checks	current
+T1497.002	User Activity Based Checks	current
+T1497.003	Time Based Checks	current
+T1498	Network Denial of Service	current
+T1498.001	Direct Network Flood	current
+T1498.002	Reflection Amplification	current
+T1499	Endpoint Denial of Service	current
+T1499.001	OS Exhaustion Flood	current
+T1499.002	Service Exhaustion Flood	current
+T1499.003	Application Exhaustion Flood	current
+T1499.004	Application or System Exploitation	current
+T1500	Compile After Delivery	revoked
+T1501	Systemd Service	revoked
+T1502	Parent PID Spoofing	revoked
+T1503	Credentials from Web Browsers	revoked
+T1504	PowerShell Profile	revoked
+T1505	Server Software Component	current
+T1505.001	SQL Stored Procedures	current
+T1505.002	Transport Agent	current
+T1505.003	Web Shell	current
+T1505.004	IIS Components	current
+T1505.005	Terminal Services DLL	current
+T1505.006	vSphere Installation Bundles	current
+T1506	Web Session Cookie	revoked
+T1514	Elevated Execution with Prompt	revoked
+T1518	Software Discovery	current
+T1518.001	Security Software Discovery	current
+T1518.002	Backup Software Discovery	current
+T1519	Emond	revoked
+T1522	Cloud Instance Metadata API	revoked
+T1525	Implant Internal Image	current
+T1526	Cloud Service Discovery	current
+T1527	Application Access Token	revoked
+T1528	Steal Application Access Token	current
+T1529	System Shutdown/Reboot	current
+T1530	Data from Cloud Storage	current
+T1531	Account Access Removal	current
+T1534	Internal Spearphishing	current
+T1535	Unused/Unsupported Cloud Regions	current
+T1536	Revert Cloud Instance	revoked
+T1537	Transfer Data to Cloud Account	current
+T1538	Cloud Service Dashboard	current
+T1539	Steal Web Session Cookie	current
+T1542	Pre-OS Boot	current
+T1542.001	System Firmware	current
+T1542.002	Component Firmware	current
+T1542.003	Bootkit	current
+T1542.004	ROMMONkit	current
+T1542.005	TFTP Boot	current
+T1543	Create or Modify System Process	current
+T1543.001	Launch Agent	current
+T1543.002	Systemd Service	current
+T1543.003	Windows Service	current
+T1543.004	Launch Daemon	current
+T1543.005	Container Service	current
+T1546	Event Triggered Execution	current
+T1546.001	Change Default File Association	current
+T1546.002	Screensaver	current
+T1546.003	Windows Management Instrumentation Event Subscription	current
+T1546.004	Unix Shell Configuration Modification	current
+T1546.005	Trap	current
+T1546.006	LC_LOAD_DYLIB Addition	current
+T1546.007	Netsh Helper DLL	current
+T1546.008	Accessibility Features	current
+T1546.009	AppCert DLLs	current
+T1546.010	AppInit DLLs	current
+T1546.011	Application Shimming	current
+T1546.012	Image File Execution Options Injection	current
+T1546.013	PowerShell Profile	current
+T1546.014	Emond	current
+T1546.015	Component Object Model Hijacking	current
+T1546.016	Installer Packages	current
+T1546.017	Udev Rules	current
+T1546.018	Python Startup Hooks	current
+T1547	Boot or Logon Autostart Execution	current
+T1547.001	Registry Run Keys / Startup Folder	current
+T1547.002	Authentication Package	current
+T1547.003	Time Providers	current
+T1547.004	Winlogon Helper DLL	current
+T1547.005	Security Support Provider	current
+T1547.006	Kernel Modules and Extensions	current
+T1547.007	Re-opened Applications	current
+T1547.008	LSASS Driver	current
+T1547.009	Shortcut Modification	current
+T1547.010	Port Monitors	current
+T1547.011	Plist Modification	revoked
+T1547.012	Print Processors	current
+T1547.013	XDG Autostart Entries	current
+T1547.014	Active Setup	current
+T1547.015	Login Items	current
+T1548	Abuse Elevation Control Mechanism	current
+T1548.001	Setuid and Setgid	current
+T1548.002	Bypass User Account Control	current
+T1548.003	Sudo and Sudo Caching	current
+T1548.004	Elevated Execution with Prompt	current
+T1548.005	Temporary Elevated Cloud Access	current
+T1548.006	TCC Manipulation	current
+T1550	Use Alternate Authentication Material	current
+T1550.001	Application Access Token	current
+T1550.002	Pass the Hash	current
+T1550.003	Pass the Ticket	current
+T1550.004	Web Session Cookie	current
+T1552	Unsecured Credentials	current
+T1552.001	Credentials In Files	current
+T1552.002	Credentials in Registry	current
+T1552.003	Shell History	current
+T1552.004	Private Keys	current
+T1552.005	Cloud Instance Metadata API	current
+T1552.006	Group Policy Preferences	current
+T1552.007	Container API	current
+T1552.008	Chat Messages	current
+T1553	Subvert Trust Controls	current
+T1553.001	Gatekeeper Bypass	current
+T1553.002	Code Signing	current
+T1553.003	SIP and Trust Provider Hijacking	current
+T1553.004	Install Root Certificate	current
+T1553.005	Mark-of-the-Web Bypass	current
+T1553.006	Code Signing Policy Modification	current
+T1554	Compromise Host Software Binary	current
+T1555	Credentials from Password Stores	current
+T1555.001	Keychain	current
+T1555.002	Securityd Memory	current
+T1555.003	Credentials from Web Browsers	current
+T1555.004	Windows Credential Manager	current
+T1555.005	Password Managers	current
+T1555.006	Cloud Secrets Management Stores	current
+T1556	Modify Authentication Process	current
+T1556.001	Domain Controller Authentication	current
+T1556.002	Password Filter DLL	current
+T1556.003	Pluggable Authentication Modules	current
+T1556.004	Network Device Authentication	current
+T1556.005	Reversible Encryption	current
+T1556.006	Multi-Factor Authentication	current
+T1556.007	Hybrid Identity	current
+T1556.008	Network Provider DLL	current
+T1556.009	Conditional Access Policies	current
+T1557	Adversary-in-the-Middle	current
+T1557.001	Name Resolution Poisoning and SMB Relay	current
+T1557.002	ARP Cache Poisoning	current
+T1557.003	DHCP Spoofing	current
+T1557.004	Evil Twin	current
+T1558	Steal or Forge Kerberos Tickets	current
+T1558.001	Golden Ticket	current
+T1558.002	Silver Ticket	current
+T1558.003	Kerberoasting	current
+T1558.004	AS-REP Roasting	current
+T1558.005	Ccache Files	current
+T1559	Inter-Process Communication	current
+T1559.001	Component Object Model	current
+T1559.002	Dynamic Data Exchange	current
+T1559.003	XPC Services	current
+T1560	Archive Collected Data	current
+T1560.001	Archive via Utility	current
+T1560.002	Archive via Library	current
+T1560.003	Archive via Custom Method	current
+T1561	Disk Wipe	current
+T1561.001	Disk Content Wipe	current
+T1561.002	Disk Structure Wipe	current
+T1562	Impair Defenses	revoked
+T1562.001	Disable or Modify Tools	revoked
+T1562.002	Disable Windows Event Logging	revoked
+T1562.003	Impair Command History Logging	revoked
+T1562.004	Disable or Modify System Firewall	revoked
+T1562.006	Indicator Blocking	revoked
+T1562.007	Disable or Modify Cloud Firewall	revoked
+T1562.008	Disable or Modify Cloud Logs	revoked
+T1562.009	Safe Mode Boot	revoked
+T1562.010	Downgrade Attack	revoked
+T1562.011	Spoof Security Alerting	revoked
+T1562.012	Disable or Modify Linux Audit System	revoked
+T1562.013	Disable or Modify Network Device Firewall	revoked
+T1563	Remote Service Session Hijacking	current
+T1563.001	SSH Hijacking	current
+T1563.002	RDP Hijacking	current
+T1564	Hide Artifacts	current
+T1564.001	Hidden Files and Directories	current
+T1564.002	Hidden Users	current
+T1564.003	Hidden Window	current
+T1564.004	NTFS File Attributes	current
+T1564.005	Hidden File System	current
+T1564.006	Run Virtual Instance	current
+T1564.007	VBA Stomping	current
+T1564.008	Email Hiding Rules	current
+T1564.009	Resource Forking	current
+T1564.010	Process Argument Spoofing	current
+T1564.011	Ignore Process Interrupts	current
+T1564.012	File/Path Exclusions	current
+T1564.013	Bind Mounts	current
+T1564.014	Extended Attributes	current
+T1565	Data Manipulation	current
+T1565.001	Stored Data Manipulation	current
+T1565.002	Transmitted Data Manipulation	current
+T1565.003	Runtime Data Manipulation	current
+T1566	Phishing	current
+T1566.001	Spearphishing Attachment	current
+T1566.002	Spearphishing Link	current
+T1566.003	Spearphishing via Service	current
+T1566.004	Spearphishing Voice	current
+T1567	Exfiltration Over Web Service	current
+T1567.001	Exfiltration to Code Repository	current
+T1567.002	Exfiltration to Cloud Storage	current
+T1567.003	Exfiltration to Text Storage Sites	current
+T1567.004	Exfiltration Over Webhook	current
+T1568	Dynamic Resolution	current
+T1568.001	Fast Flux DNS	current
+T1568.002	Domain Generation Algorithms	current
+T1568.003	DNS Calculation	current
+T1569	System Services	current
+T1569.001	Launchctl	current
+T1569.002	Service Execution	current
+T1569.003	Systemctl	current
+T1570	Lateral Tool Transfer	current
+T1571	Non-Standard Port	current
+T1572	Protocol Tunneling	current
+T1573	Encrypted Channel	current
+T1573.001	Symmetric Cryptography	current
+T1573.002	Asymmetric Cryptography	current
+T1574	Hijack Execution Flow	current
+T1574.001	DLL	current
+T1574.002	DLL Side-Loading	revoked
+T1574.004	Dylib Hijacking	current
+T1574.005	Executable Installer File Permissions Weakness	current
+T1574.006	Dynamic Linker Hijacking	current
+T1574.007	Path Interception by PATH Environment Variable	current
+T1574.008	Path Interception by Search Order Hijacking	current
+T1574.009	Path Interception by Unquoted Path	current
+T1574.010	Services File Permissions Weakness	current
+T1574.011	Services Registry Permissions Weakness	current
+T1574.012	COR_PROFILER	current
+T1574.013	KernelCallbackTable	current
+T1574.014	AppDomainManager	current
+T1578	Modify Cloud Compute Infrastructure	current
+T1578.001	Create Snapshot	current
+T1578.002	Create Cloud Instance	current
+T1578.003	Delete Cloud Instance	current
+T1578.004	Revert Cloud Instance	current
+T1578.005	Modify Cloud Compute Configurations	current
+T1580	Cloud Infrastructure Discovery	current
+T1583	Acquire Infrastructure	current
+T1583.001	Domains	current
+T1583.002	DNS Server	current
+T1583.003	Virtual Private Server	current
+T1583.004	Server	current
+T1583.005	Botnet	current
+T1583.006	Web Services	current
+T1583.007	Serverless	current
+T1583.008	Malvertising	current
+T1584	Compromise Infrastructure	current
+T1584.001	Domains	current
+T1584.002	DNS Server	current
+T1584.003	Virtual Private Server	current
+T1584.004	Server	current
+T1584.005	Botnet	current
+T1584.006	Web Services	current
+T1584.007	Serverless	current
+T1584.008	Network Devices	current
+T1585	Establish Accounts	current
+T1585.001	Social Media Accounts	current
+T1585.002	Email Accounts	current
+T1585.003	Cloud Accounts	current
+T1586	Compromise Accounts	current
+T1586.001	Social Media Accounts	current
+T1586.002	Email Accounts	current
+T1586.003	Cloud Accounts	current
+T1587	Develop Capabilities	current
+T1587.001	Malware	current
+T1587.002	Code Signing Certificates	current
+T1587.003	Digital Certificates	current
+T1587.004	Exploits	current
+T1588	Obtain Capabilities	current
+T1588.001	Malware	current
+T1588.002	Tool	current
+T1588.003	Code Signing Certificates	current
+T1588.004	Digital Certificates	current
+T1588.005	Exploits	current
+T1588.006	Vulnerabilities	current
+T1588.007	Artificial Intelligence	current
+T1589	Gather Victim Identity Information	current
+T1589.001	Credentials	current
+T1589.002	Email Addresses	current
+T1589.003	Employee Names	current
+T1590	Gather Victim Network Information	current
+T1590.001	Domain Properties	current
+T1590.002	DNS	current
+T1590.003	Network Trust Dependencies	current
+T1590.004	Network Topology	current
+T1590.005	IP Addresses	current
+T1590.006	Network Security Appliances	current
+T1591	Gather Victim Org Information	current
+T1591.001	Determine Physical Locations	current
+T1591.002	Business Relationships	current
+T1591.003	Identify Business Tempo	current
+T1591.004	Identify Roles	current
+T1592	Gather Victim Host Information	current
+T1592.001	Hardware	current
+T1592.002	Software	current
+T1592.003	Firmware	current
+T1592.004	Client Configurations	current
+T1593	Search Open Websites/Domains	current
+T1593.001	Social Media	current
+T1593.002	Search Engines	current
+T1593.003	Code Repositories	current
+T1594	Search Victim-Owned Websites	current
+T1595	Active Scanning	current
+T1595.001	Scanning IP Blocks	current
+T1595.002	Vulnerability Scanning	current
+T1595.003	Wordlist Scanning	current
+T1596	Search Open Technical Databases	current
+T1596.001	DNS/Passive DNS	current
+T1596.002	WHOIS	current
+T1596.003	Digital Certificates	current
+T1596.004	CDNs	current
+T1596.005	Scan Databases	current
+T1597	Search Closed Sources	current
+T1597.001	Threat Intel Vendors	current
+T1597.002	Purchase Technical Data	current
+T1598	Phishing for Information	current
+T1598.001	Spearphishing Service	current
+T1598.002	Spearphishing Attachment	current
+T1598.003	Spearphishing Link	current
+T1598.004	Spearphishing Voice	current
+T1599	Network Boundary Bridging	current
+T1599.001	Network Address Translation Traversal	current
+T1600	Weaken Encryption	current
+T1600.001	Reduce Key Space	current
+T1600.002	Disable Crypto Hardware	current
+T1601	Modify System Image	current
+T1601.001	Patch System Image	current
+T1601.002	Downgrade System Image	current
+T1602	Data from Configuration Repository	current
+T1602.001	SNMP (MIB Dump)	current
+T1602.002	Network Device Configuration Dump	current
+T1606	Forge Web Credentials	current
+T1606.001	Web Cookies	current
+T1606.002	SAML Tokens	current
+T1608	Stage Capabilities	current
+T1608.001	Upload Malware	current
+T1608.002	Upload Tool	current
+T1608.003	Install Digital Certificate	current
+T1608.004	Drive-by Target	current
+T1608.005	Link Target	current
+T1608.006	SEO Poisoning	current
+T1609	Container Administration Command	current
+T1610	Deploy Container	current
+T1611	Escape to Host	current
+T1612	Build Image on Host	current
+T1613	Container and Resource Discovery	current
+T1614	System Location Discovery	current
+T1614.001	System Language Discovery	current
+T1615	Group Policy Discovery	current
+T1619	Cloud Storage Object Discovery	current
+T1620	Reflective Code Loading	current
+T1621	Multi-Factor Authentication Request Generation	current
+T1622	Debugger Evasion	current
+T1647	Plist File Modification	current
+T1648	Serverless Execution	current
+T1649	Steal or Forge Authentication Certificates	current
+T1650	Acquire Access	current
+T1651	Cloud Administration Command	current
+T1652	Device Driver Discovery	current
+T1653	Power Settings	current
+T1654	Log Enumeration	current
+T1656	Impersonation	revoked
+T1657	Financial Theft	current
+T1659	Content Injection	current
+T1665	Hide Infrastructure	current
+T1666	Modify Cloud Resource Hierarchy	current
+T1667	Email Bombing	current
+T1668	Exclusive Control	current
+T1669	Wi-Fi Networks	current
+T1671	Cloud Application Integration	current
+T1672	Email Spoofing	revoked
+T1673	Virtual Machine Discovery	current
+T1674	Input Injection	current
+T1675	ESXi Administration Command	current
+T1677	Poisoned Pipeline Execution	current
+T1678	Delay Execution	current
+T1679	Selective Exclusion	current
+T1680	Local Storage Discovery	current
+T1681	Search Threat Vendor Data	current
+T1682	Query Public AI Services	current
+T1683	Generate Content	current
+T1683.001	Written Content	current
+T1683.002	Audio-Visual Content	current
+T1684	Social Engineering	current
+T1684.001	Impersonation	current
+T1684.002	Email Spoofing	current
+T1685	Disable or Modify Tools	current
+T1685.001	Disable or Modify Windows Event Log	current
+T1685.002	Disable or Modify Cloud Log	current
+T1685.003	Modify or Spoof Tool UI	current
+T1685.004	Disable or Modify Linux Audit System Log	current
+T1685.005	Clear Windows Event Logs	current
+T1685.006	Clear Linux or Mac System Logs	current
+T1686	Disable or Modify System Firewall	current
+T1686.001	Cloud Firewall	current
+T1686.002	Network Device Firewall	current
+T1686.003	Windows Host Firewall	current
+T1687	Exploitation for Defense Impairment	current
+T1688	Safe Mode Boot	current
+T1689	Downgrade Attack	current
+T1690	Prevent Command History Logging	current

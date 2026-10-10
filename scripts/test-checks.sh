@@ -187,6 +187,30 @@ lint_escalation() {
   has "escalation: a true-positive hit with no Suspicious Security Event candidate warns" "$m" '^WARN escalation'
 }
 
+lint_attack_ids() {
+  local b d m dep
+  b=$(lint plan "$BASE/work" 2>&1)
+  has "attack-ids: the baseline's IDs are checked" "$b" '^(PASS|WARN) attack-ids'
+  d=$(mut); printf '\nT9999 and T1234.999\n' >> "$d/threat-hunting/intel-analysis/$SLUG-analysis.md"
+  m=$(lint plan "$d" 2>&1)
+  has "attack-ids: an unknown ID warns with the ATT&CK version" "$m" '^WARN attack-ids .*T9999 not in ATT&CK v[0-9]'
+  has "attack-ids: an unknown sub-technique warns" "$m" '^WARN attack-ids .*T1234.999 not in ATT&CK v[0-9]'
+  [ -z "$(printf '%s\n' "$m" | fail_ids)" ] && ok "attack-ids: unknown IDs are a WARN, not a FAIL" || bad "attack-ids: unknown IDs are a WARN, not a FAIL"
+  dep=$(awk -F'\t' '!/^#/ && $3=="deprecated"{print $1; exit}' "$REPO/data/attack-enterprise-ids.tsv")
+  if [ -n "$dep" ]; then
+    d=$(mut); printf '\n%s\n' "$dep" >> "$d/threat-hunting/hunt-plans/$SLUG-hunt-plan.md"
+    m=$(lint plan "$d" 2>&1); has "attack-ids: a deprecated ID warns" "$m" "^WARN attack-ids .*$dep is deprecated"
+  fi
+  d=$(mut); printf '\nattack.t9998\n' >> "$d/threat-hunting/hunt-plans/$SLUG-hunt-plan.md"
+  m=$(lint plan "$d" 2>&1); has "attack-ids: Sigma-style lowercase tags are read" "$m" '^WARN attack-ids .*T9998'
+}
+lint_attack_ids_data_missing() {
+  local d m; d=$(mut)
+  mkdir -p "$d/scripts" "$d/data"; cp "$REPO/scripts/check-contracts.sh" "$d/scripts/"; cp "$REPO/data/section-order.tsv" "$d/data/"
+  m=$(bash "$d/scripts/check-contracts.sh" "$SLUG" plan "$d/threat-hunting" 2>&1)
+  has "attack-ids: SKIP when the data file is absent" "$m" '^SKIP attack-ids'
+}
+
 # --- tests end ---
 
 main() {

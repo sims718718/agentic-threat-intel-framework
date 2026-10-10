@@ -171,6 +171,27 @@ check_escalation() {
   fi
 }
 
+check_attack() {
+  local data="$DATA/attack-enterprise-ids.tsv" ver f ids id status warned
+  if [ ! -f "$data" ]; then emit SKIP attack-ids "data/attack-enterprise-ids.tsv missing"; return; fi
+  ver=$(sed -n '1s/.*\(v[0-9][0-9.]*\).*/\1/p' "$data")
+  for f in "$ANALYSIS" "$PLAN" "$DET"; do
+    [ -f "$f" ] || continue
+    if [ "$f" = "$DET" ] && [ "$STAGE" != post ]; then continue; fi
+    ids=$(rd "$f" | grep -oiwE 'T[0-9]{4}(\.[0-9]{3})?' | tr 'a-z' 'A-Z' | sort -u)
+    warned=0
+    for id in $ids; do
+      status=$(rd "$data" | awk -F'\t' -v id="$id" '!/^#/ && $1==id {print $3; exit}')
+      case "$status" in
+        current) ;;
+        deprecated|revoked) emit WARN attack-ids "$(basename "$f"): $id is $status in ATT&CK $ver"; warned=1;;
+        *) emit WARN attack-ids "$(basename "$f"): $id not in ATT&CK $ver (the bundled data is a snapshot)"; warned=1;;
+      esac
+    done
+    if [ "$warned" = 0 ]; then emit PASS attack-ids "$(basename "$f"): $(printf '%s\n' "$ids" | grep -c .) technique ID(s), all current in ATT&CK $ver"; fi
+  done
+}
+
 # --- checks run ---
 check_presence
 check_status
@@ -187,6 +208,7 @@ if [ "$STAGE" = post ]; then
   check_verdict
   check_escalation
 fi
+check_attack
 check_placeholders
 
 echo "SUMMARY pass=$NP warn=$NW fail=$NF skip=$NS"
