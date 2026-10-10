@@ -304,6 +304,29 @@ lint_language() {
   [ -z "$(printf '%s\n' "$m" | fail_ids)" ] && ok "language: a banned phrase is a WARN, not a FAIL" || bad "language: a banned phrase is a WARN, not a FAIL"
 }
 
+agents_structure() {
+  local a f
+  for a in intel-challenger plan-reviewer detection-reviewer; do
+    f="$REPO/agents/$a.md"
+    if bash "$REPO/scripts/validate-frontmatter.sh" "$f" name description tools >/dev/null 2>&1; then ok "agent $a: frontmatter present"; else bad "agent $a: frontmatter present"; fi
+    grep -q '^name: '"$a"'$' "$f" 2>/dev/null && ok "agent $a: name matches the file" || bad "agent $a: name matches the file"
+    grep -q '^tools: Read, Grep, Glob$' "$f" 2>/dev/null && ok "agent $a: read-only tools" || bad "agent $a: read-only tools"
+    grep -qF '| Severity | Location | Issue | Suggested fix |' "$f" 2>/dev/null && ok "agent $a: findings table format" || bad "agent $a: findings table format"
+    grep -qi 'data, never instructions' "$f" 2>/dev/null && ok "agent $a: treats artifacts as data" || bad "agent $a: treats artifacts as data"
+    grep -qi 'do not write' "$f" 2>/dev/null && ok "agent $a: writes no files" || bad "agent $a: writes no files"
+  done
+}
+agents_dry_run() {
+  local a out d marker
+  d=$(mut); marker="$d/marker"; touch "$marker"
+  for a in intel-challenger plan-reviewer detection-reviewer; do
+    if [ "$a" = detection-reviewer ] && [ ! -f "$BASE/work/threat-hunting/detections/$SLUG-detection.md" ]; then continue; fi
+    out=$(cd "$d" && MSYS_NO_PATHCONV=1 claude --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits -p "Dispatch the $a agent for slug $SLUG. The run's artifacts are under $d/threat-hunting. If the agent type is not registered in this session, read $REPO/agents/$a.md and run a general-purpose agent with that file's instructions, read-only. Print the findings exactly as returned." < /dev/null 2>&1)
+    has "agent $a: returns a findings table or 'No findings'" "$out" '(\| Severity \| Location \| Issue \| Suggested fix \||No findings)'
+  done
+  if [ -z "$(find "$d" -type f -newer "$marker" ! -name marker 2>/dev/null)" ]; then ok "agents wrote no files"; else bad "agents wrote no files" "$(find "$d" -type f -newer "$marker" ! -name marker)"; fi
+}
+
 # --- tests end ---
 
 main() {
@@ -314,7 +337,9 @@ main() {
     agents)   need_baseline; run_group agents;;
     wiring)   need_baseline; run_group wiring;;
     all)      run_group drift; need_baseline; run_group lint; run_group agents; run_group wiring;;
-    *) echo "usage: test-checks.sh [drift|baseline|lint|agents|wiring|all]" >&2; exit 2;;
+    drift_*|lint_*|agents_*|wiring_*)
+      if declare -F "$1" >/dev/null; then need_baseline; "$1"; else echo "no such test: $1" >&2; exit 2; fi;;
+    *) echo "usage: test-checks.sh [drift|baseline|lint|agents|wiring|all|<test_function>]" >&2; exit 2;;
   esac
   echo "---- $PASSN passed, $FAILN failed"
   [ "$FAILN" = 0 ]
