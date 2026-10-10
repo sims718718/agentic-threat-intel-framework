@@ -34,14 +34,14 @@ Checks by ID:
 | ID | Stage | Check | Result |
 |---|---|---|---|
 | `presence` | both | The stage's expected files exist, including HTML twins (plan stage: analysis, report, plan, hunt log, validation; post stage adds detection if the log lists a Detection Opportunity or a hit, and the hunt report) | FAIL if a required file is missing, SKIP for later-stage files |
-| `section-order` | both | Headings of each present artifact match the fixed order in `data/section-order.tsv` | FAIL on missing, extra top-level, or reordered section |
+| `section-order` | both | Headings of each present artifact match the fixed order in `data/section-order.tsv` | FAIL on a missing or reordered required section; extra sections are allowed because real plans and detections add some. A detection must also hold `### 1.` to `### 10.` in order inside each `## DET-` block |
 | `results-status` | both | The hunt log's `Results status` is `PENDING EXECUTION`, `RECORDED`, or `PARTIAL` | FAIL otherwise |
 | `story-ids` | post | Every Story ID in the hunt log exists in the plan, and every plan Story appears in the log | FAIL on an unknown ID, WARN on a missing one |
-| `verdict-bound` | post | `Refuted` requires coverage `Confirmed` and no Story `Not executed` | FAIL otherwise |
+| `verdict-bound` | post | `Refuted` requires coverage `Confirmed`, no Story `Not executed` or `Partial`, and no true-positive or `Undetermined` hit | FAIL otherwise |
 | `escalation` | post | A true-positive or `Undetermined` hit has a Suspicious Security Event outcome candidate | WARN otherwise |
 | `attack-ids` | both | Every `T####` or `T####.###` ID in the analysis, plan, and detection is in `data/attack-enterprise-ids.tsv` | WARN with "not in ATT&CK vN" for unknown IDs, WARN for deprecated or revoked IDs; SKIP when the data file is absent |
 | `sigma` | post | The detection's fenced YAML block has `title`, `logsource`, `detection`, `condition`, and `level`; every selection named in `condition` is defined; the condition is not a lone hash, IP, or domain selection | FAIL on a missing key or undefined selection, WARN on an indicator-only condition |
-| `det-xref` | post | `DET-XXX` IDs agree across the detection, validation, and hunt report, and the report's `Validation` section is not left at `Pending hunt-validator` when a recorded validation exists | FAIL on a mismatched ID, WARN on a stale `Validation` section |
+| `det-xref` | post | `DET-XXX` IDs agree across the detection, validation, and hunt report, and the report's `Validation` section is not left at `Pending hunt-validator` when a validation file exists | FAIL on a mismatched ID, WARN on a stale `Validation` section |
 | `language` | post | The hunt report does not say "clean", "no threat", or "environment is secure" | WARN |
 | `placeholders` | both | Count of `[FILL IN: ...]`, `Unknown`, and `[PENDING EXECUTION]` markers per artifact | PASS with counts (information, not a defect) |
 
@@ -55,7 +55,7 @@ Checks by ID:
 
 ### C3: Section-order data and drift guard (UTH: Formalize Hunt Plan)
 
-- `data/section-order.tsv`: tab-separated `artifact`, `position`, `heading`, for the analysis, report, hunt plan, hunt log, and hunt report. Only fixed top-level headings are listed.
+- `data/section-order.tsv`: tab-separated `artifact`, `position`, `prefix`, for the analysis, report, hunt plan, hunt log, hunt report, detection, and validation. Each row is a heading prefix, matched in order against the artifact's `##` headings outside code fences.
 - The drift test extracts the same headings from the fenced templates in the skills and diffs them against this file. A skill edit that changes a heading without updating the data file fails the test.
 
 ### C4: Review agents (UTH: Intelligence-Led Hunting, Hypothesis Development, Document Outcomes)
