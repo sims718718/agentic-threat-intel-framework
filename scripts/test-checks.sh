@@ -71,8 +71,10 @@ mk_baseline() {
   if [ -f "$BASE/slug" ]; then echo "baseline exists: $BASE"; return 0; fi
   mkdir -p "$BASE/work" || return 1
   cd "$BASE/work" || return 1
-  echo "running the planning half (live research; this can take 15-30 minutes)..."
-  claude_run "Run the /run-hunt-pipeline command defined in $REPO/commands/run-hunt-pipeline.md for this input: $SUBJECT. Follow it exactly. It has no confirmation gates." "$BASE/pipeline.out"
+  if ! ls threat-hunting/hunt-plans/*-hunt-plan.md >/dev/null 2>&1; then
+    echo "running the planning half (live research; this can take 15-30 minutes)..."
+    claude_run "Run the /run-hunt-pipeline command defined in $REPO/commands/run-hunt-pipeline.md for this input: $SUBJECT. Follow it exactly. It has no confirmation gates." "$BASE/pipeline.out"
+  fi
   local s
   s=$(ls threat-hunting/hunt-plans/*-hunt-plan.md 2>/dev/null | head -1 | sed 's#.*/##; s#-hunt-plan\.md$##')
   [ -n "$s" ] || { echo "pipeline produced no hunt plan; see $BASE/pipeline.out" >&2; return 1; }
@@ -90,9 +92,9 @@ mk_baseline() {
         echo "Result: 0 hits."
       fi
     done
-  } > "$BASE/results.md"
+  } > results.md
   echo "running the post-hunt half..."
-  claude_run "Run the /run-post-hunt command defined in $REPO/commands/run-post-hunt.md with these arguments: $s $BASE/results.md . Follow it exactly." "$BASE/post.out"
+  claude_run "Run the /run-post-hunt command defined in $REPO/commands/run-post-hunt.md with these arguments: $s results.md . Follow it exactly." "$BASE/post.out"
   [ -f "threat-hunting/hunt-reports/$s-hunt-report.md" ] || { echo "post-hunt produced no hunt report; see $BASE/post.out" >&2; return 1; }
   echo "$s" > "$BASE/slug"
   echo "baseline ready: $BASE (slug $s)"
@@ -104,6 +106,50 @@ need_baseline() {
 mut() { local d; d=$(mktemp -d "$BASE/mut.XXXXXX") && cp -r "$BASE/work/threat-hunting" "$d/" && echo "$d"; }
 sedi() { local f=$1; shift; sed "$@" "$f" > "$f.new" && mv "$f.new" "$f"; }
 lint() { bash "$REPO/scripts/check-contracts.sh" "$SLUG" "$1" "$2/threat-hunting"; }
+
+# ---------- lint ----------
+lint_baseline_has_no_fail() {
+  local out; out=$(lint plan "$BASE/work" 2>&1)
+  has "plan stage runs and reports a summary" "$out" '^SUMMARY pass=[0-9]+ warn=[0-9]+ fail=[0-9]+ skip=[0-9]+'
+  if [ -z "$(printf '%s\n' "$out" | fail_ids)" ]; then ok "plan stage: no FAIL on the baseline"; else bad "plan stage: FAIL on the baseline" "$(printf '%s\n' "$out" | grep '^FAIL')"; fi
+  out=$(lint post "$BASE/work" 2>&1)
+  if [ -z "$(printf '%s\n' "$out" | fail_ids)" ]; then ok "post stage: no FAIL on the baseline"; else bad "post stage: FAIL on the baseline" "$(printf '%s\n' "$out" | grep '^FAIL')"; fi
+}
+lint_usage_and_unknown_slug() {
+  bash "$REPO/scripts/check-contracts.sh" 2>/dev/null; [ $? = 2 ] && ok "usage error exits 2" || bad "usage error exits 2"
+  bash "$REPO/scripts/check-contracts.sh" no-such-slug plan "$BASE/work/threat-hunting" 2>/dev/null; [ $? = 2 ] && ok "unknown slug exits 2" || bad "unknown slug exits 2"
+}
+lint_presence_and_placeholders() {
+  local out; out=$(lint plan "$BASE/work" 2>&1)
+  has "presence: plan present" "$out" '^PASS presence hunt plan present'
+  has "placeholders are counted" "$out" '^PASS placeholders .*-hunt-plan\.md: fill-in=[0-9]+ unknown=[0-9]+ pending=[0-9]+'
+  local d; d=$(mut); mv "$d/threat-hunting/intel-reports/$SLUG-report.html" "$d/threat-hunting/intel-reports/$SLUG-report.html.gone"
+  out=$(lint plan "$d" 2>&1); has "presence: missing HTML twin fails" "$out" '^FAIL presence intel report HTML twin missing'
+}
+lint_results_status() {
+  local d b m; b=$(lint post "$BASE/work" 2>&1); d=$(mut)
+  sedi "$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md" 's/^\(| *Results status *|\).*/\1 BOGUS |/'
+  m=$(lint post "$d" 2>&1)
+  has "results-status: unknown value fails" "$m" '^FAIL results-status'
+  has "results-status: baseline passes" "$b" '^PASS results-status'
+}
+lint_section_order() {
+  local d b m; b=$(lint post "$BASE/work" 2>&1)
+  has "section-order: report passes on the baseline" "$b" '^PASS section-order intel report'
+  d=$(mut)
+  sedi "$d/threat-hunting/intel-reports/$SLUG-report.md" -e 's/^## Executive Summary/@@A@@/' -e 's/^## Key Judgments/## Executive Summary/' -e 's/^@@A@@/## Key Judgments/'
+  m=$(lint post "$d" 2>&1)
+  has "section-order: swapped sections fail as reordered" "$m" "^FAIL section-order intel report.*reordered.*'Key Judgments'"
+  only_new_fail "section-order: swap adds only the section-order FAIL" "$b" "$m" section-order
+  d=$(mut)
+  sedi "$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md" 's/^## Hunt-Level Verdict and Coverage/## Hunt-Level Result/'
+  m=$(lint post "$d" 2>&1)
+  has "section-order: renamed section fails as missing" "$m" "^FAIL section-order hunt log.*missing.*'Hunt-Level Verdict and Coverage'"
+  d=$(mut)
+  printf '\n## Extra Local Notes\nanything\n' >> "$d/threat-hunting/hunt-plans/$SLUG-hunt-plan.md"
+  m=$(lint post "$d" 2>&1)
+  has "section-order: an extra section is allowed" "$m" '^PASS section-order hunt plan'
+}
 
 # --- tests end ---
 
