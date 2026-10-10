@@ -17,7 +17,6 @@ report	8	Appendix: Full Source List
 plan	1	Environment Profile
 plan	2	Epic:
 plan	3	Story:
-plan	4	Task:
 hunt-log	1	Execution Header
 hunt-log	2	Per-Story Results
 hunt-log	3	Hunt-Level Verdict and Coverage

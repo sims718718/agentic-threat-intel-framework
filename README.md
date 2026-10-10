@@ -346,11 +346,11 @@ Both commands end with an advisory **Quality checks** step: a contract linter pl
 | `language` | The hunt report avoids "clean", "no threat", and "environment is secure" |
 | `placeholders` | Counts of `[FILL IN]`, `Unknown`, and `[PENDING EXECUTION]` (information only) |
 
-Three read-only agents review the judgement-heavy artifacts and return a findings table (`Severity | Location | Issue | Suggested fix`): `intel-challenger` (analysis and report) and `plan-reviewer` (hunt plan) after the planning half, and `detection-reviewer` (detection) after `/run-post-hunt`. They advise; the skills' own gates and rubrics decide. If a session does not register the plugin's agents, the commands run the agent's instructions through a `general-purpose` agent and mark the heading.
+Three read-only agents review the judgement-heavy artifacts and return a findings table (`Severity | Location | Issue | Suggested fix`): `intel-challenger` (analysis and report) and `plan-reviewer` (hunt plan) after the planning half, and `detection-reviewer` (detection) after `/run-post-hunt`. They advise; the skills' own gates and rubrics decide. If a session does not register the plugin's agents, the commands perform that review inline from the agent file, mark the heading `[inline fallback]`, and say the review was not independent.
 
 Limits: the ATT&CK file is a snapshot (`scripts/update-attack-ids.sh` regenerates it; maintainers only), so an unknown ID reads "not in ATT&CK vN", not "invalid". The Sigma check is structural, not a compiler.
 
-**Testing.** `scripts/test-checks.sh` builds a baseline by running the real commands in a scratch project (needs the `claude` CLI and network), then lints it and mutated copies, and dry-runs the agents and the commands' quality step. It never reads `examples/`. `scripts/test-checks.sh drift` runs offline and checks that `data/section-order.tsv` matches the skills' fenced templates.
+**Testing.** `scripts/test-checks.sh` builds a baseline by running the real commands in a scratch project (needs the `claude` CLI and network), then lints it and mutated copies, and dry-runs the agents and the commands' quality step. It never reads `examples/`. `drift` runs offline and checks that `data/section-order.tsv` matches the skills' fenced templates; `lint` runs offline once a baseline exists.
 
 ---
 

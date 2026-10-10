@@ -58,6 +58,7 @@ check_presence() {
     fi
     if [ -f "$DET" ]; then emit PASS presence "detection present"
     elif [ -f "$HREPORT" ] && rd "$HREPORT" | grep -qi 'No detection produced'; then emit PASS presence "no detection produced (stated in the hunt report)"
+    elif det_expected; then emit FAIL presence "detection missing ($DET) although the hunt log lists a Detection Opportunity or a hit, and the hunt report does not say why none was produced"
     else emit SKIP presence "detection not present ($DET)"; fi
   fi
 }
@@ -119,7 +120,18 @@ check_placeholders() {
   done
 }
 
-HIT_RE='\|[[:space:]]*(True positive|Undetermined)[[:space:]]*\|'
+nlog() { rd "$LOG" | tr -d '*`_'; }   # hunt log without emphasis markers
+log_has_open_hit() { # a true-positive or Undetermined disposition in any cell (annotations and case allowed)
+  nlog | grep -vi 'true positive / false positive' | grep -Eiq '\|[[:space:]]*(true positive|undetermined)'
+}
+log_has_any_hit() { # any disposition in the hit table's third cell
+  nlog | grep -vi 'true positive / false positive' | grep -Eiq '^\|[^|]*\|[^|]*\|[[:space:]]*(true positive|false positive|benign|undetermined)'
+}
+det_expected() { # the hunt log lists a Detection Opportunity or a hit
+  [ "$HAS_RESULTS" = 1 ] || return 1
+  nlog | awk '/^## Outcome Candidates/{s=1; next} /^## /{s=0} s' | grep -qi 'detection opportunity' && return 0
+  log_has_any_hit
+}
 
 check_story_ids() {
   [ "$STAGE" = post ] || return 0
@@ -143,16 +155,21 @@ check_verdict() {
   local row verdict cov problems=""
   row=$(rd "$LOG" | awk '/^## Hunt-Level Verdict and Coverage/{s=1; next} /^## /{s=0} s && /^\|/{n++; if(n==3){print; exit}}')
   verdict=$(cell "$row" 2); cov=$(cell "$row" 3)
-  case "$verdict" in
-    Refuted*)
-      case "$cov" in Confirmed*) ;; *) problems="$problems coverage is '${cov:-missing}', not Confirmed;";; esac
-      if rd "$LOG" | grep -Eq '^\|[[:space:]]*Execution status[[:space:]]*\|[[:space:]]*(Not executed|Partial)'; then problems="$problems a Story is Not executed or Partial;"; fi
-      if rd "$LOG" | grep -Eq "$HIT_RE"; then problems="$problems a true-positive or Undetermined hit is recorded;"; fi
+  local vl cl
+  vl=$(printf '%s' "$verdict" | tr 'A-Z' 'a-z'); cl=$(printf '%s' "$cov" | tr 'A-Z' 'a-z')
+  case "$vl" in
+    refuted*)
+      case "$cl" in
+        confirmed*) case "$cl" in *unconfirmed*) problems="$problems coverage is only partly confirmed ('$cov');";; esac;;
+        *) problems="$problems coverage is '${cov:-missing}', not Confirmed;";;
+      esac
+      if nlog | grep -Eiq '^\|[[:space:]]*execution status[[:space:]]*\|[[:space:]]*(not executed|partial)'; then problems="$problems a Story is Not executed or Partial;"; fi
+      if log_has_open_hit; then problems="$problems a true-positive or Undetermined hit is recorded;"; fi
       if [ -n "$problems" ]; then emit FAIL verdict-bound "Refuted is not allowed:$problems"
       else emit PASS verdict-bound "Refuted with coverage Confirmed, every Story executed, no open hit"; fi
       ;;
     "") emit WARN verdict-bound "could not read the hunt-level verdict";;
-    *PENDING*) emit SKIP verdict-bound "the hunt-level verdict is still pending";;
+    *pending*) emit SKIP verdict-bound "the hunt-level verdict is still pending";;
     *) emit PASS verdict-bound "hunt-level verdict '$verdict'; no Refuted bound to check";;
   esac
 }
@@ -160,8 +177,8 @@ check_verdict() {
 check_escalation() {
   [ "$STAGE" = post ] || return 0
   if [ "$HAS_RESULTS" != 1 ]; then emit SKIP escalation "the hunt log holds no results"; return; fi
-  if rd "$LOG" | grep -Eq "$HIT_RE"; then
-    if rd "$LOG" | awk '/^## Outcome Candidates/{s=1; next} /^## /{s=0} s' | grep -qi 'Suspicious Security Event'; then
+  if log_has_open_hit; then
+    if nlog | awk '/^## Outcome Candidates/{s=1; next} /^## /{s=0} s' | grep -qi 'Suspicious Security Event'; then
       emit PASS escalation "a true-positive or Undetermined hit has a Suspicious Security Event candidate"
     else
       emit WARN escalation "a true-positive or Undetermined hit has no Suspicious Security Event outcome candidate"
@@ -193,7 +210,13 @@ check_attack() {
 }
 
 IFS= read -r -d '' SIGMA_AWK <<'AWK'
+function lbl() { return (doc == 1) ? blk : blk "." doc }
 function finish(   i, n, mind, ind, line, key, names, cond, incond, tokens, t, w, k, ok, pre, undefd, missing, field, base, allind, nfields, v, req) {
+  if ("correlation" in top) {
+    if ("title" in top) print "PASS	block " lbl() " is a correlation rule (detection keys not applicable)"
+    else print "FAIL	block " lbl() " missing: title"
+    return
+  }
   missing = ""
   n = split("title logsource detection level", req, " ")
   for (i = 1; i <= n; i++) if (!(req[i] in top)) missing = missing " " req[i]
@@ -222,7 +245,7 @@ function finish(   i, n, mind, ind, line, key, names, cond, incond, tokens, t, w
     }
   }
   if (cond == "") missing = missing " condition"
-  if (missing != "") { print "FAIL\tblock " blk " missing:" missing; return }
+  if (missing != "") { print "FAIL\tblock " lbl() " missing:" missing; return }
   gsub(/[^A-Za-z0-9_*]/, " ", cond)
   n = split(cond, tokens, " ")
   undefd = ""
@@ -235,19 +258,20 @@ function finish(   i, n, mind, ind, line, key, names, cond, incond, tokens, t, w
       if (!ok) undefd = undefd " " t
     } else if (!(t in names)) undefd = undefd " " t
   }
-  if (undefd != "") { print "FAIL\tblock " blk " has a condition that uses an undefined selection:" undefd; return }
-  if (nfields > 0 && allind) { print "WARN\tblock " blk " matches only hash, IP, or domain indicators"; return }
-  print "PASS\tblock " blk " has the required keys and a defined condition"
+  if (undefd != "") { print "FAIL\tblock " lbl() " has a condition that uses an undefined selection:" undefd; return }
+  if (nfields > 0 && allind) { print "WARN\tblock " lbl() " matches only hash, IP, or domain indicators"; return }
+  print "PASS\tblock " lbl() " has the required keys and a defined condition"
 }
-function reset() { delete top; delete detl; delete detind; nd = 0; indet = 0 }
+function reset() { delete top; delete detl; delete detind; nd = 0; indet = 0; hascontent = 0 }
 { sub(/\r$/, "") }
 /^```/ {
-  if (inblk) { finish(); inblk = 0; next }
-  if ($0 ~ /^```(yaml|yml)[[:space:]]*$/) { inblk = 1; blk++; reset() }
+  if (inblk) { if (hascontent || doc == 1) finish(); inblk = 0; next }
+  if ($0 ~ /^```(yaml|yml)[[:space:]]*$/) { inblk = 1; blk++; doc = 1; reset() }
   next
 }
+inblk && /^---[[:space:]]*$/ { if (hascontent) finish(); reset(); doc++; next }
 inblk {
-  if ($0 ~ /^[A-Za-z_]+:/) { k = $0; sub(/:.*/, "", k); top[k] = 1; indet = (k == "detection"); next }
+  if ($0 ~ /^[A-Za-z_]+:/) { k = $0; sub(/:.*/, "", k); top[k] = 1; hascontent = 1; indet = (k == "detection"); next }
   if (indet && $0 !~ /^[[:space:]]*(#.*)?$/) { match($0, /^[[:space:]]*/); nd++; detl[nd] = $0; detind[nd] = RLENGTH }
 }
 END { if (blk == 0) print "WARN\tno yaml block found in the detection" }

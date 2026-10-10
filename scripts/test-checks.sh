@@ -321,7 +321,7 @@ agents_dry_run() {
   d=$(mut); marker="$d/marker"; touch "$marker"
   for a in intel-challenger plan-reviewer detection-reviewer; do
     if [ "$a" = detection-reviewer ] && [ ! -f "$BASE/work/threat-hunting/detections/$SLUG-detection.md" ]; then continue; fi
-    out=$(cd "$d" && MSYS_NO_PATHCONV=1 claude --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits -p "Dispatch the $a agent for slug $SLUG. The run's artifacts are under $d/threat-hunting. If the agent type is not registered in this session, read $REPO/agents/$a.md and run a general-purpose agent with that file's instructions, read-only. Print the findings exactly as returned." < /dev/null 2>&1)
+    out=$(cd "$d" && MSYS_NO_PATHCONV=1 claude --plugin-dir "$REPO" --add-dir "$REPO" --permission-mode acceptEdits -p "Dispatch the $a agent for slug $SLUG. The run's artifacts are under $d/threat-hunting. If the agent type is not registered in this session, read $REPO/agents/$a.md and perform that review yourself inline, reading only. Print the findings exactly as returned." < /dev/null 2>&1)
     has "agent $a: returns a findings table or 'No findings'" "$out" '(\| Severity \| Location \| Issue \| Suggested fix \||No findings)'
   done
   if [ -z "$(find "$d" -type f -newer "$marker" ! -name marker 2>/dev/null)" ]; then ok "agents wrote no files"; else bad "agents wrote no files" "$(find "$d" -type f -newer "$marker" ! -name marker)"; fi
@@ -335,7 +335,7 @@ wiring_static() {
     grep -q 'quality/<slug>-quality.md' "$p" && ok "$f: writes the quality file" || bad "$f: writes the quality file"
     grep -qi 'never fails the command' "$p" && ok "$f: quality failures do not fail the command" || bad "$f: quality failures do not fail the command"
     grep -q '^Quality:' "$p" && ok "$f: summary has a Quality line" || bad "$f: summary has a Quality line"
-    grep -q 'general-purpose' "$p" && ok "$f: has the agent-unavailable fallback" || bad "$f: has the agent-unavailable fallback"
+    grep -q 'inline fallback' "$p" && ok "$f: has the agent-unavailable fallback" || bad "$f: has the agent-unavailable fallback"
   done
   grep -q 'intel-challenger' "$REPO/commands/run-hunt-pipeline.md" && grep -q 'plan-reviewer' "$REPO/commands/run-hunt-pipeline.md" && ok "run-hunt-pipeline: dispatches intel-challenger and plan-reviewer" || bad "run-hunt-pipeline: dispatches intel-challenger and plan-reviewer"
   grep -q 'detection-reviewer' "$REPO/commands/run-post-hunt.md" && ok "run-post-hunt: dispatches detection-reviewer" || bad "run-post-hunt: dispatches detection-reviewer"
@@ -352,6 +352,107 @@ wiring_dry_run() {
   has "quality file gains a Post stage section" "$(cat "$q")" '^## Post stage'
   has "the Plan stage section is still present" "$(cat "$q")" '^## Plan stage'
   [ "$prev" = "$(awk '/^## Plan stage/{s=1; next} /^## /{s=0} s' "$q" | grep -v '^[[:space:]]*$' | md5sum)" ] && ok "the Post stage run left the Plan stage section unchanged" || bad "the Post stage run left the Plan stage section unchanged"
+}
+
+# ---------- review fixes ----------
+setrow() { # file verdict coverage : rewrite the hunt-level table's data row
+  awk -v v="$2" -v c="$3" '/^## Hunt-Level Verdict and Coverage/{s=1} /^## / && !/^## Hunt-Level/{s=0} s && /^\|/{n++; if(n==3){print "| " v " | " c " | n/a |"; next}} {print}' "$1" > "$1.new" && mv "$1.new" "$1"
+}
+lint_verdict_bound_annotated_cells() {
+  local d m f
+  for hit in 'Undetermined (not triaged by hunter)' '**True positive**' 'True Positive - escalated'; do
+    d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"; setrow "$f" "Refuted" "Confirmed"
+    printf '\n| H-9 | injected | %s | none |\n' "$hit" >> "$f"
+    m=$(lint post "$d" 2>&1)
+    has "verdict-bound: Refuted with hit cell '$hit' fails" "$m" '^FAIL verdict-bound .*hit'
+  done
+  d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"; setrow "$f" "Refuted" "Confirmed"
+  printf '\n| Execution status | **Not executed** |\n' >> "$f"
+  m=$(lint post "$d" 2>&1); has "verdict-bound: emphasised Not executed fails a Refuted verdict" "$m" '^FAIL verdict-bound .*Not executed'
+  d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"; setrow "$f" "Refuted" "Confirmed for IdP audit log; Unconfirmed for ticketing"
+  m=$(lint post "$d" 2>&1); has "verdict-bound: mixed coverage fails a Refuted verdict" "$m" '^FAIL verdict-bound .*coverage'
+  d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  printf '\n| H-9 | injected | **True positive** | none |\n' >> "$f"; sedi "$f" 's/Suspicious Security Event/Security Event/g'
+  m=$(lint post "$d" 2>&1); has "escalation: an emphasised True positive with no candidate warns" "$m" '^WARN escalation'
+  d=$(mut); m=$(lint post "$d" 2>&1)
+  if printf '%s\n' "$m" | grep -q '^WARN escalation'; then bad "escalation: the unmodified baseline does not warn"; else ok "escalation: the unmodified baseline does not warn"; fi
+}
+lint_sigma_multi_document() {
+  local d m f; d=$(mut); f="$d/threat-hunting/detections/$SLUG-detection.md"
+  cat > "$f" <<'EOF'
+# Detection Handoff: test data
+
+## DET-901 - several documents in one fence
+```yaml
+title: first
+logsource:
+    product: windows
+detection:
+    sel_a:
+        Image|endswith: '\a.exe'
+    condition: sel_a
+level: low
+---
+title: second
+detection:
+    sel_b:
+        CommandLine|contains: 'x'
+    condition: sel_b
+level: low
+---
+title: third
+logsource:
+    product: windows
+detection:
+    sel_c:
+        CommandLine|contains: 'y'
+    condition: sel_a and sel_c
+level: low
+---
+title: correlation
+correlation:
+    type: temporal
+    rules:
+        - first
+        - second
+    group-by:
+        - Target
+    timespan: 60m
+level: medium
+```
+EOF
+  m=$(lint post "$d" 2>&1)
+  has "sigma multi-doc: the first document passes" "$m" '^PASS sigma block 1 '
+  has "sigma multi-doc: a document missing logsource fails on its own" "$m" '^FAIL sigma block 1\.2 .*missing:.*logsource'
+  has "sigma multi-doc: a selection defined only in another document is undefined" "$m" '^FAIL sigma block 1\.3 .*undefined selection: sel_a'
+  has "sigma multi-doc: a correlation rule is not held to the detection keys" "$m" '^PASS sigma block 1\.4 '
+}
+lint_presence_detection_required() {
+  local b d m; b=$(lint post "$BASE/work" 2>&1)
+  if [ ! -f "$BASE/work/threat-hunting/detections/$SLUG-detection.md" ]; then ok "presence: baseline has no detection (required-detection test not applicable)"; return; fi
+  d=$(mut); mv "$d/threat-hunting/detections/$SLUG-detection.md" "$d/threat-hunting/detections/$SLUG-detection.md.gone"
+  sedi "$d/threat-hunting/hunt-reports/$SLUG-hunt-report.md" 's/No detection produced/Not stated/g'
+  m=$(lint post "$d" 2>&1)
+  has "presence: a hit was recorded but no detection and no stated reason fails" "$m" '^FAIL presence detection'
+  only_new_fail "presence: adds only the presence FAIL" "$b" "$m" presence
+}
+lint_section_order_express_plan() {
+  local d m; d=$(mut)
+  sedi "$d/threat-hunting/hunt-plans/$SLUG-hunt-plan.md" 's/^## Task:/### Task:/'
+  m=$(lint plan "$d" 2>&1)
+  has "section-order: a plan with no Task headings (Express Mode) passes" "$m" '^PASS section-order hunt plan'
+}
+wiring_review_fixes() {
+  local f p
+  for f in run-hunt-pipeline run-post-hunt; do
+    p="$REPO/commands/$f.md"
+    grep -q '^allowed-tools:' "$p" && bad "$f: no broad allowed-tools pattern" || ok "$f: no broad allowed-tools pattern"
+    grep -q 'general-purpose' "$p" && bad "$f: no general-purpose fallback" || ok "$f: no general-purpose fallback"
+    grep -q 'inline fallback' "$p" && ok "$f: inline fallback when the agent is not registered" || bad "$f: inline fallback when the agent is not registered"
+    grep -qi 'exits with status 1' "$p" && ok "$f: exit status 1 is described as a normal result" || bad "$f: exit status 1 is described as a normal result"
+  done
+  grep -q 'no build, lint, or test suite' "$REPO/CLAUDE.md" && bad "CLAUDE.md: no stale 'no test suite' claim" || ok "CLAUDE.md: no stale 'no test suite' claim"
+  grep -q 'general-purpose' "$REPO/README.md" "$REPO/CLAUDE.md" && bad "docs: no general-purpose fallback wording" || ok "docs: no general-purpose fallback wording"
 }
 
 # --- tests end ---
