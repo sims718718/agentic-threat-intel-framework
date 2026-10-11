@@ -1,0 +1,40 @@
+# artifact	position	prefix  (heading prefixes, matched in order against ## headings outside code fences)
+analysis	1	Source Material
+analysis	2	Actor Profile
+analysis	3	ATT&CK / TTP Mapping
+analysis	4	Indicators of Compromise
+analysis	5	Related CVEs / Advisories
+analysis	6	Source Reputation Notes
+analysis	7	Open Questions and Gaps
+report	1	Executive Summary
+report	2	Key Judgments
+report	3	Actor / Campaign Overview
+report	4	MITRE ATT&CK Coverage
+report	5	Indicators of Compromise
+report	6	Recommended Actions
+report	7	Confidence and Sourcing
+report	8	Appendix: Full Source List
+plan	1	Environment Profile
+plan	2	Epic:
+plan	3	Story:
+hunt-log	1	Execution Header
+hunt-log	2	Per-Story Results
+hunt-log	3	Hunt-Level Verdict and Coverage
+hunt-log	4	Outcome Candidates
+hunt-log	5	Known-Good / Exclusion List
+hunt-log	6	Deviations and New Questions
+hunt-report	1	Executive Summary
+hunt-report	2	Hypothesis and Verdict
+hunt-report	3	Scope and Coverage Achieved
+hunt-report	4	Findings
+hunt-report	5	Typed Outcomes
+hunt-report	6	Detections
+hunt-report	7	Visibility Gaps
+hunt-report	8	Next Iteration
+hunt-report	9	Metrics
+hunt-report	10	Caveats
+hunt-report	11	Validation
+hunt-report	12	Sources
+detection	1	DET-
+validation	1	Validation Record
+validation	2	Outcome Documentation

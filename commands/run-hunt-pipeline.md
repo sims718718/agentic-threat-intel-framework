@@ -15,11 +15,13 @@ Run the planning stages of the threat-intel-hunt-framework pipeline against `$AR
 6. **Invoke the `hunt-execution` skill in WORKSHEET mode.** It reads the plan and writes the blank hunt log `./threat-hunting/hunt-logs/<slug>-hunt-log.md`. If the log already holds results (recorded, or filled in by hand), it leaves it untouched; that is expected on a re-run.
 7. **Invoke the `hunt-validator` skill.** With no recorded hunt results it runs in PLAN mode and writes `./threat-hunting/validations/<slug>-validation.md` with the test selection and `[PENDING EXECUTION]` fields. **Skip step 7** (write nothing, and say so) when the hunt log already holds results: a planning re-run must never touch a recorded validation.
 
+8. **Quality checks (advisory).** Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/check-contracts.sh" <slug> plan ./threat-hunting` and keep its output verbatim. The linter exits with status 1 when any check FAILed; that is a normal result, not a script failure, so record its output rather than `SKIP`. Then dispatch the `intel-challenger` and `plan-reviewer` agents in parallel, giving each the slug and the project directory; each returns a findings table or `No findings`. If an agent type is not registered in the session, do not dispatch a substitute agent: read its file under `${CLAUDE_PLUGIN_ROOT}/agents/` and perform that review yourself, inline, reading only (the quality file is the only file you write), mark the heading `[inline fallback]`, and say in the summary that the review was not independent. Write `./threat-hunting/quality/<slug>-quality.md`: create it with a `# Quality Checks: <slug>` title if absent, then add or replace only the `## Plan stage` section, laid out as `Run: <date>`, `### Contract checks` (the linter output), `### intel-challenger`, and `### plan-reviewer`. Leave a `## Post stage` section untouched. If the script cannot run or an agent cannot be run at all, write `SKIP <reason>` under that heading and continue. Agents advise; the skills' own gates decide. A quality-check failure never fails the command, never edits another artifact, and adds no confirmation gate. If an agent returns free text instead of a table, paste it under its heading marked `[unstructured]`.
+
 ## If a stage can't produce a clean result
 
 Every skill in this pipeline is designed to proceed and annotate gaps (`[FILL IN: ...]`, `Unknown`, `[PENDING EXECUTION]`) rather than block. Let that behavior carry through here too — do not stop the pipeline because one stage's output has caveats. This includes `gather`'s pipeline mode, which marks uninferrable environment fields `Unknown` rather than asking.
 
-## Step 8: Final summary
+## Step 9: Final summary
 
 After all stages complete, print a summary listing every file path (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in. If `hunt-planner` reported the plan locked, or the hunt log already holds results, say so in the summary: label the hunt log as holding results instead of "(blank)", and note that the refreshed analysis and report are not reflected in the locked plan. Otherwise, tell the user that the hunt must now be run manually and that `/run-post-hunt` produces the detection, hunt report, and recorded validation:
 
@@ -31,6 +33,7 @@ Planning complete for <slug>:
 3. Hunt Plan:        ./threat-hunting/hunt-plans/<slug>-hunt-plan.md
 4. Hunt Log (blank): ./threat-hunting/hunt-logs/<slug>-hunt-log.md
 5. Validation Plan:  ./threat-hunting/validations/<slug>-validation.md
+Quality:      <pass> pass, <warn> warn, <fail> fail, <skip> skip; High findings: intel-challenger <n>, plan-reviewer <n>; details ./threat-hunting/quality/<slug>-quality.md
 
 Next: run the hunt in your own tools, record the results in the hunt log (or keep notes),
 then run /run-post-hunt <slug> [path to results, or paste them].
