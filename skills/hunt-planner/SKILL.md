@@ -38,18 +38,9 @@ Before building the hunt plan, capture the user's environment so that all output
 
 **Capture (or infer) the following:**
 
-| Context | Why It Matters |
-|---------|----------------|
-| **SIEM / Data Platform** | Splunk SPL vs. KQL vs. Elastic DSL vs. Chronicle affects every query example |
-| **EDR Platform** | CrowdStrike, SentinelOne, Defender for Endpoint — affects telemetry field names |
-| **Environment Type** | On-premises, cloud-native (AWS/Azure/GCP), or hybrid |
-| **Industry Vertical** | Tailors threat actor relevance (finance, healthcare, energy, manufacturing, etc.) |
-| **Approximate Log Retention** | Determines what time windows are actually feasible |
-| **Hunt Maturity Level** | Score honestly using `references/hunt-maturity-model.md` rather than a free-text guess — first-time hunters need more scaffolding; experienced teams may prefer a skeleton |
+The six contexts, why each matters, the Express path, and the `Unknown` rule are defined in `../_shared/references/environment-context.md`; capture or infer each one. If that file cannot be read, capture at least **SIEM platform** and **environment type**.
 
 Pick the relevant domain row from `references/domain-telemetry-matrix.md` (endpoint / on-prem AD / cloud IdP / cloud control plane) before writing the hypothesis in Step 2 — it changes which telemetry and identity model applies.
-
-**Express path**: If the user wants to move fast, capture only **SIEM platform** and **environment type** — these are the minimum required to produce useful, non-generic outputs.
 
 Document captured context as a `## Environment Profile` section at the top of the hunt plan document, before the Epic.
 
@@ -94,9 +85,13 @@ For complex hunts requiring competing hypotheses, or for the five ready-made tem
 
 **Then score it.** Run the hypothesis through `references/hypothesis-rubric.md`'s 5-dimension rubric (Specificity, Testability, Falsifiability, Relevance, Pyramid level). A score below 10, or any single dimension scoring 1, means rewrite before proceeding to Step 3 — most failures are Specificity, so push the hypothesis down to a field-level observable.
 
+**Competing explanations (required when they exist).** Run the Competing Hypotheses Method in `references/hypothesis-templates.md` when the trigger admits two or more plausible explanations for the same observable (for example malicious use versus administrator tooling), or when the Initial Assessment (Step 3) finds a benign explanation that is not excluded; revisit this after Step 3. Record the matrix summary in the Epic's `Initial Research`. When there is a single explanation, record `ACH not needed: single explanation`. Express Mode skips this.
+
+**Assumed breach.** State the AIMOD2 premise in `Initial Research`: assume an adversary has already bypassed preventive controls, so the hunt looks for post-compromise behavior rather than prevention failures.
+
 ## Step 3: Initial Assessment
 
-Gather supporting information:
+Gather supporting information, and run the prior-hunt check, known-good seeding, and RFI checks in `references/initial-assessment.md`; record the results in the Epic's `Initial Research` and `Exclusions`:
 
 **Internal Sources:**
 - Previous hunt reports and lessons learned
@@ -147,6 +142,8 @@ Specify boundaries and success criteria:
 - Metrics: How will success be measured?
 
 ## Step 6: Formalize Hunt Plan (Jira Structure)
+
+**Plan lock (applies to Express Mode too).** Before writing `<slug>-hunt-plan.md` or its HTML twin, check `./threat-hunting/hunt-logs/<slug>-hunt-log.md`. If it holds results (`Results status` is `RECORDED` or `PARTIAL`, or any Per-Story result field is no longer `[PENDING EXECUTION]`), write nothing and tell the user the plan is locked, because the recorded results reference its Story IDs; they may archive the log or choose a new slug to re-plan. A blank worksheet (`PENDING EXECUTION`, every result field still pending) does not lock the plan.
 
 Use the templates in `references/jira-templates.md` for exact field structures.
 
@@ -203,7 +200,7 @@ The Epic represents the overarching hunt hypothesis and contains:
 
 ### Story Structure
 
-Stories are discrete investigations under the Epic. Each Story tests a specific aspect of the hypothesis.
+Stories are discrete investigations under the Epic. Each Story tests a specific aspect of the hypothesis. A non-Express plan with two or more Stories must use different methods (for example a direct signature-style test and a baseline or anomaly test) so the hypothesis is challenged rather than only confirmed; if one method genuinely suffices, record a single-method justification in the Epic's `Initial Research`.
 
 ```markdown
 ## Story: [HUNT-XXX-S1] [Investigation Title]
@@ -281,7 +278,7 @@ Before finalizing the hunt plan, verify:
 
 - [ ] Triggering event documented with source and relevance
 - [ ] Hypothesis is SMART-compliant and scored ≥10 on the hypothesis rubric with no dimension at 1
-- [ ] Initial assessment completed with internal/external sources
+- [ ] Initial assessment completed with internal/external sources, and the prior-hunt check, known-good seeding, ACH decision, and assumed-breach premise recorded in `Initial Research`
 - [ ] Feasibility assessment shows GO or CONDITIONAL with documented assumptions
 - [ ] Scope clearly defines boundaries, time window, and in-scope assets
 - [ ] Objectives are specific and measurable
@@ -302,7 +299,7 @@ Use Express Mode when the user has a rough idea and needs a skeleton quickly, or
 **Trigger signals**: User says "quick plan," "rough draft," "just give me a skeleton," shares a single CVE or advisory with urgency, or is clearly time-constrained.
 
 **Express Mode process:**
-1. Capture trigger and hypothesis in 2-3 sentences (use the Express Template in `references/hypothesis-templates.md`)
+1. Capture trigger and hypothesis in 2-3 sentences (use the Express Template in `references/hypothesis-templates.md`), plus a one-line prior-hunt check (`references/initial-assessment.md`, check 1)
 2. Note the top 2-3 data sources required
 3. List the key MITRE ATT&CK techniques under investigation
 4. Give a rough effort estimate: Low (1-2 days) / Medium (3-5 days) / High (1-2 weeks)

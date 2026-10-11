@@ -69,14 +69,14 @@ flowchart TD
         HYP --> FEAS --> JIRA
     end
 
-    subgraph S4["Stage 4 — detection-engineer"]
+    subgraph S4["Stage 4 — detection-engineer (only if a hit or detection candidate exists)"]
         SIG["Sigma rule + native translation"]
         ROB{{"Robustness score<br/>both axes low → Visibility Gap, not a rule"}}
         ADS["DET-XXX handoff<br/>10-section ADS-lite artifact"]
         SIG --> ROB --> ADS
     end
 
-    subgraph S5["Stage 5 — hunt-validator"]
+    subgraph S5["Stage 5 — hunt-validator (PLAN before the hunt, RECORD after)"]
         VAL["Validation record<br/>did telemetry and detection fire?"]
         OUT["Typed outcome documentation<br/>six categories"]
         VAL --> OUT
@@ -102,10 +102,14 @@ flowchart TD
     SX -->|"hunt-log.md (results)"| S4B
     S4 -->|"detection.md"| S5
     S4B -->|"hunt-report.md"| S5
+    S3 -->|"hunt-plan.md (PLAN mode, before the hunt)"| S5
+    S5 -.->|"RECORD mode: writes result back into the report"| S4B
     OUT -.->|"Threat Intelligence Observable"| S1
     OUT -.->|"Hunt Opportunity"| S3
     OUT -.->|"writes result back into DET section 9"| ADS
 ```
+
+`/run-hunt-pipeline` runs stages 0–3, then `hunt-execution` (worksheet) and `hunt-validator` (PLAN). `/run-post-hunt` runs `hunt-execution` (intake), stages 4 and 4b, and `hunt-validator` (RECORD). The human hunt sits between them.
 
 The chain has four properties worth knowing before you read the stages:
 
@@ -317,12 +321,13 @@ Each stage has a gate that stops weak work from flowing downstream looking stron
 | `hunt-planner` | Feasibility | GO / CONDITIONAL / NO-GO |
 | `detection-engineer` | Robustness score and acceptance gate | Both axes low means a Visibility Gap instead of a rule; six rejection conditions on the handoff |
 | `hunt-validator` | Validation record | A detection artifact should not permanently read "not yet validated" once a run has occurred |
+| `hunt-execution` | Coverage-bounded verdict | `Refuted` needs every planned source queried with confirmed coverage over the planned window and no true-positive or undetermined hit; anything else is `Inconclusive` |
 
 ---
 
 ## Running it
 
-**Whole pipeline, one input:**
+**Planning half, one input:**
 
 ```
 /run-hunt-pipeline CVE-2026-41205

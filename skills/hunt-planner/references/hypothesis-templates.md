@@ -191,6 +191,8 @@ Document the comparison and select the most supported hypothesis for hunting.
 
 ### When to Use Competing Hypotheses
 
+**Required (hunt-planner Step 2)** when the trigger admits two or more plausible explanations for the same observable, or when the initial assessment finds a benign explanation that is not excluded. Optional otherwise.
+
 - Ambiguous triggering events with multiple interpretations
 - High-stakes hunts where wrong focus has significant cost
 - When initial research reveals conflicting information

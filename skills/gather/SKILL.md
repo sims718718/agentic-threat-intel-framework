@@ -32,16 +32,7 @@ Look for `./threat-hunting/environment-profile.md` in the invoking project. If i
 
 If any of this is already known from the conversation, skip those items.
 
-| Context | Why It Matters |
-|---------|----------------|
-| **SIEM / Data Platform** | Splunk SPL vs. KQL vs. Elastic DSL vs. Chronicle affects every query example |
-| **EDR Platform** | CrowdStrike, SentinelOne, Defender for Endpoint — affects telemetry field names |
-| **Environment Type** | On-premises, cloud-native (AWS/Azure/GCP), or hybrid |
-| **Industry Vertical** | Tailors threat actor relevance (finance, healthcare, energy, manufacturing, etc.) |
-| **Approximate Log Retention** | Determines what time windows are actually feasible |
-| **Hunt Maturity Level** | Score honestly using the `hunt-planner` skill's `references/hunt-maturity-model.md` rather than a free-text guess — first-time hunters need more scaffolding; experienced teams may prefer a skeleton |
-
-**Express path**: If the user wants to move fast, capture only **SIEM platform** and **environment type** — these are the minimum required to produce useful, non-generic outputs.
+The six contexts, why each matters, the Express path, and the `Unknown` rule are defined in `../_shared/references/environment-context.md`; capture or infer each one. If that file cannot be read, capture at least **SIEM platform** and **environment type**.
 
 ## Step 3: Write the profile
 
@@ -65,4 +56,4 @@ Leave any uncaptured field as `Unknown` rather than omitting the row.
 ## When to ask vs. proceed
 
 - **Standalone mode: ask first** — this skill's interactive mode exists specifically to interview the user; do not fabricate environment details when invoked directly. Proceed and annotate only for fields left uncaptured via the Express path — mark them `Unknown` and invite the user to fill them in later.
-- **Pipeline mode: ask first, always proceed** —  always ask the user to gather additonal context prior to procedding  - infer what you can from context, mark everything else `Unknown`, and never pause after gathering intial context. This mirrors every other stage's "proceed and annotate gaps rather than block" philosophy.
+- **Pipeline mode: never ask, always proceed** — infer what you can from context, mark everything else `Unknown`, and never pause after the first pass. This mirrors every other stage's "proceed and annotate gaps rather than block" philosophy.

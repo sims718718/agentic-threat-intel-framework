@@ -9,7 +9,7 @@ Turn a hunt finding into an artifact detection engineering can actually accept â
 
 ## Step 1: Locate the hunt plan
 
-If invoked standalone (not via `/run-hunt-pipeline`) and the slug isn't already established from context, look for the most recent matching file under `./threat-hunting/hunt-plans/*.md` and use its slug; if more than one candidate exists, ask the user which one.
+If invoked standalone (not via a pipeline command) and the slug isn't already established from context, look for the most recent matching file under `./threat-hunting/hunt-plans/*.md` and use its slug; if more than one candidate exists, ask the user which one.
 
 Read `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`. Pull: the `## Environment Profile` (for SIEM/EDR platform â€” determines whether you produce Sigma only or Sigma + a native translation), the Story's `### Detection Logic` and `### Expected Outcomes` (the raw material for the rule), and the Epic's `### MITRE ATT&CK Mapping`.
 

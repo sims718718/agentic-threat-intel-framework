@@ -1,6 +1,6 @@
 ---
 name: hunt-reporter
-description: "Write the final hunt report for an executed hunt: hypothesis and verdict, scope and coverage actually achieved, findings, typed outcomes, detections, visibility gaps, next iteration, outcome metrics, and caveats. Always trigger when a user asks for a hunt report, a hunt write-up, to report or close out an executed hunt, or what to do next after hunt results are in. Runs in /run-post-hunt after hunt-execution and detection-engineer; reads the hunt log, hunt plan, intel report, and detection; hunt-validator later writes its validation result back into the report."
+description: "Write the final hunt report for an executed hunt: hypothesis and verdict, scope and coverage actually achieved, findings, typed outcomes, detections, visibility gaps, next iteration, outcome metrics, and caveats. Always trigger when a user asks for a hunt report, a hunt write-up, to report on an executed hunt, or what to do next after hunt results are in. Not for proving a detection fires or documenting typed outcomes: that is hunt-validator. Runs in /run-post-hunt after hunt-execution and detection-engineer; reads the hunt log, hunt plan, intel report, and detection; hunt-validator later writes its validation result back into the report."
 ---
 
 # Hunt Reporter
@@ -87,5 +87,5 @@ After writing the Markdown file, render a styled, self-contained HTML sibling at
 
 - Never say "clean," "no threat," or "environment is secure." Say what was searched, where, and over what window.
 - An Inconclusive verdict is a result, not a failure; say what would resolve it.
-- Leave the `## Validation` placeholder as written; `hunt-validator` replaces it.
+- Leave the `## Validation` placeholder as written when no validation record exists; `hunt-validator` replaces it. If `./threat-hunting/validations/<slug>-validation.md` already holds a recorded test result, carry its Method/Result/Evidence summary into `## Validation` instead, in the same wording `hunt-validator` writes.
 - Missing inputs are annotated (`Not provided`, `No detection produced`), never invented.

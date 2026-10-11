@@ -11,7 +11,7 @@ Answer a decision-relevant intelligence question with traceable evidence and exp
 
 Identify the subject and reuse the pipeline slug, or derive one in kebab-case, at most 6 words. Ask only if no subject is identifiable. Otherwise proceed with documented assumptions.
 
-State the intelligence question, intended decision/audience, scope, and collection cutoff. Convert relative periods into explicit start/end dates; distinguish event dates from publication dates. Older material may supply labeled background, not proof of activity within the requested window. Reuse `./threat-hunting/environment-profile.md` if available; missing environment details remain `Unknown`.
+State the intelligence question, intended decision/audience, scope, and collection cutoff. Convert relative periods into explicit start/end dates; distinguish event dates from publication dates. Older material may supply labeled background, not proof of activity within the requested window. State the intelligence type (strategic, operational, or tactical), the most recent reported activity date, and a shelf-life judgment: **Current**, **Aging**, or **Historical**. Operational and tactical intelligence has a shelf life: a technique the adversary has abandoned, or that is no longer exploitable in practice (for example the exploited versions are end-of-life), is Historical even if the report is recent; a released vendor patch alone does not make actively exploited intelligence Historical. IOCs outside the shelf life are marked `Stale` in the existing notes text, not in a new column. Reuse `./threat-hunting/environment-profile.md` if available; missing environment details remain `Unknown`.
 
 ## Step 1: Collect and evaluate evidence
 
@@ -40,13 +40,15 @@ Test the strongest plausible alternative to each central explanation (including 
 
 Use **High / Moderate / Low** confidence for judgments, justified by evidence quality, independence, and gaps; keep confidence distinct from likelihood. High requires strong direct or independently corroborated evidence with no material unresolved contradiction. Moderate has credible support with material limits. Low rests on sparse, indirect, or conflicting evidence. Do not assign numeric probabilities without a defensible basis.
 
-Explain relevance to the known environment conditionally. Offer behavior + observable + likely telemetry as handoff seeds; never claim local compromise, visibility, or detection validation from external reporting alone.
+Explain relevance to the known environment conditionally. Rate relevance as **Matches**, **Partial**, **Not shown**, or **Unknown** by comparing the actor's or campaign's targeting criteria (vertical, geography, technology stack, size) and any exposed product or version with the environment profile; relevance stays `Unknown` when the profile is `Unknown`, and is never inferred from an actor's prominence. Offer behavior + observable + likely telemetry as handoff seeds; never claim local compromise, visibility, or detection validation from external reporting alone.
+
+A seed is **actionable** only if it names the behavior, an ATT&CK technique ID, a data source, and a field-level observable. Label any seed that fails `information, not yet actionable` and list it under *Open Questions and Gaps* with the analysis it still needs. Order actionable seeds by relevance and timeliness, giving the reason in one clause; active exploitation of a product the organization runs comes first. Also list under *Open Questions and Gaps* the internal sources this framework cannot query that would sharpen relevance: the organization's incident history, sector ISAC reporting, exposure and credential-leak monitoring, and internal telemetry.
 
 ## Step 4: Apply the quality gate
 
 Score the draft with [analysis rubric](references/analysis-rubric.md). Revise analytical defects before delivery. Evidence that remains unavailable must lower confidence or narrow the judgment, not be fabricated to pass.
 
-Record scores with evidence and one status: **READY** (all criteria met), **LIMITED** (usable but explicit collection gaps remain), or **INSUFFICIENT** (the central question cannot be answered). Always write the artifact and return its status to the pipeline; a completed analysis stage is not proof of a supported conclusion.
+Record scores with evidence and one status: **READY** (all criteria met), **LIMITED** (usable but explicit collection gaps remain), or **INSUFFICIENT** (the central question cannot be answered). Aging or Historical tactical or operational intelligence caps the status at LIMITED unless the question is strategic. Always write the artifact and return its status to the pipeline; a completed analysis stage is not proof of a supported conclusion.
 
 ## Step 5: Write and hand off
 
@@ -93,5 +95,7 @@ Write `./threat-hunting/intel-analysis/<slug>-analysis.md` in the invoking proje
 ### Quality Gate
 [Dimension scores with reasons, total, READY/LIMITED/INSUFFICIENT, and remaining limitations.]
 ```
+
+In `### Scope and Intelligence Question`, also give the timeliness statement from Step 0 (intelligence type, most recent activity date, shelf-life judgment), and in `### Operational Implications` the relevance rating and ordered seeds from Step 3.
 
 Return the path, gate status, and material gaps. Hand off to `intel-report`; preserve uncertainty and provenance.

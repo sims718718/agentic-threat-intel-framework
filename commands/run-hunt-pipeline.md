@@ -11,7 +11,7 @@ Run the planning stages of the threat-intel-hunt-framework pipeline against `$AR
 2. **Derive the slug.** kebab-case, ≤6 words, from the input's primary subject (see intel-analysis's Step 0 for the exact rule). Use this same slug for every file below.
 3. **Invoke the `intel-analysis` skill** with the user's input. Wait for it to write `./threat-hunting/intel-analysis/<slug>-analysis.md`.
 4. **Invoke the `intel-report` skill.** It will find and read the file from step 3 automatically. Wait for `./threat-hunting/intel-reports/<slug>-report.md`.
-5. **Invoke the `hunt-planner` skill.** It will find and read the environment profile from step 1 and the report from step 4 automatically. Wait for `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`.
+5. **Invoke the `hunt-planner` skill.** It will find and read the environment profile from step 1 and the report from step 4 automatically. Wait for `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`. If the hunt log already holds results, `hunt-planner` writes nothing and reports that the plan is locked; carry on to step 6.
 6. **Invoke the `hunt-execution` skill in WORKSHEET mode.** It reads the plan and writes the blank hunt log `./threat-hunting/hunt-logs/<slug>-hunt-log.md`. If the log already holds results (recorded, or filled in by hand), it leaves it untouched; that is expected on a re-run.
 7. **Invoke the `hunt-validator` skill.** With no recorded hunt results it runs in PLAN mode and writes `./threat-hunting/validations/<slug>-validation.md` with the test selection and `[PENDING EXECUTION]` fields. **Skip step 7** (write nothing, and say so) when the hunt log already holds results: a planning re-run must never touch a recorded validation.
 
@@ -21,7 +21,7 @@ Every skill in this pipeline is designed to proceed and annotate gaps (`[FILL IN
 
 ## Step 8: Final summary
 
-After all stages complete, print a summary listing every file path (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in. Tell the user that the hunt must now be run manually and that `/run-post-hunt` produces the detection, hunt report, and recorded validation:
+After all stages complete, print a summary listing every file path (even any that only partially completed) so the user can review them. If `gather` left any environment fields as `Unknown`, call that out explicitly and remind the user they can run `gather` standalone at any time to fill them in. If `hunt-planner` reported the plan locked, or the hunt log already holds results, say so in the summary: label the hunt log as holding results instead of "(blank)", and note that the refreshed analysis and report are not reflected in the locked plan. Otherwise, tell the user that the hunt must now be run manually and that `/run-post-hunt` produces the detection, hunt report, and recorded validation:
 
 ```
 Planning complete for <slug>:

@@ -55,6 +55,8 @@ Write to `./threat-hunting/intel-reports/<slug>-report.md` (same slug as the ana
 [Every source cited in the analysis, carried forward verbatim.]
 ```
 
+**Hunt seeds.** Under `### Hunt`, carry forward only seeds that `intel-analysis` marked actionable (behavior, observable, and data source named in the sentence, and an ATT&CK ID on the Coverage table row it refers to), in the analysis's order of relevance and timeliness. A seed marked `information, not yet actionable` goes in **Confidence and Sourcing** with the analysis it still needs. If the analysis stage was skipped (Step 1), apply the same test yourself.
+
 ## Step 3: Render the HTML twin
 
 After writing the Markdown file, also render a styled, self-contained HTML sibling at `./threat-hunting/intel-reports/<slug>-report.html`, following `../_shared/references/html-report-shell.md`'s shell and translation rules exactly. The Markdown file stays the source of truth; the HTML is a rendering of the same content, produced in the same turn.
