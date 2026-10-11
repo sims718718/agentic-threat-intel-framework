@@ -30,11 +30,19 @@ emit() { # level id message
 }
 rd() { tr -d '\r' < "$1"; }
 
-LSTATUS=""; HAS_RESULTS=0
+LSTATUS=""; HAS_RESULTS=0; STATUS_BAD=0
 if [ -f "$LOG" ]; then
-  LSTATUS=$(rd "$LOG" | awk -F'|' '/^\|[[:space:]]*Results status[[:space:]]*\|/{v=$3; gsub(/^[[:space:]]+|[[:space:]]+$/,"",v); print v; exit}')
-  case "$LSTATUS" in RECORDED*|PARTIAL*) HAS_RESULTS=1;; esac
+  LSTATUS=$(rd "$LOG" | tr -d '*`_' | awk -F'|' '/^\|[[:space:]]*Results status[[:space:]]*\|/{v=$3; gsub(/^[[:space:]]+|[[:space:]]+$/,"",v); print v; exit}')
+  case "$LSTATUS" in
+    RECORDED*|PARTIAL*) HAS_RESULTS=1;;
+    "PENDING EXECUTION"*) ;;
+    *) STATUS_BAD=1;;
+  esac
 fi
+no_results() { # check-id : why a result check did not run
+  if [ "$STATUS_BAD" = 1 ]; then emit WARN "$1" "Results status is unrecognised, so this result check did not run"
+  else emit SKIP "$1" "the hunt log holds no results"; fi
+}
 
 need() { # file label required(1|0)
   if [ -f "$1" ]; then emit PASS presence "$2 present"
@@ -135,7 +143,8 @@ det_expected() { # the hunt log lists a Detection Opportunity or a hit
 
 check_story_ids() {
   [ "$STAGE" = post ] || return 0
-  if [ "$HAS_RESULTS" != 1 ] || [ ! -f "$PLAN" ]; then emit SKIP story-ids "the hunt log holds no results, or the plan is missing"; return; fi
+  if [ "$HAS_RESULTS" != 1 ]; then no_results story-ids; return; fi
+  if [ ! -f "$PLAN" ]; then emit SKIP story-ids "the plan is missing"; return; fi
   local planids logids id bad="" miss=""
   planids=$(rd "$PLAN" | sed -n 's/^## Story: \[\(HUNT-[A-Za-z0-9-]*-S[0-9][0-9]*\)\].*/\1/p' | sort -u)
   logids=$(rd "$LOG" | sed -n 's/^### \(HUNT-[A-Za-z0-9-]*-S[0-9][0-9]*\).*/\1/p' | sort -u)
@@ -151,7 +160,7 @@ cell() { # row column(2|3) : trimmed cell without markdown emphasis
 }
 check_verdict() {
   [ "$STAGE" = post ] || return 0
-  if [ "$HAS_RESULTS" != 1 ]; then emit SKIP verdict-bound "the hunt log holds no results"; return; fi
+  if [ "$HAS_RESULTS" != 1 ]; then no_results verdict-bound; return; fi
   local row verdict cov problems=""
   row=$(rd "$LOG" | awk '/^## Hunt-Level Verdict and Coverage/{s=1; next} /^## /{s=0} s && /^\|/{n++; if(n==3){print; exit}}')
   verdict=$(cell "$row" 2); cov=$(cell "$row" 3)
@@ -176,7 +185,7 @@ check_verdict() {
 
 check_escalation() {
   [ "$STAGE" = post ] || return 0
-  if [ "$HAS_RESULTS" != 1 ]; then emit SKIP escalation "the hunt log holds no results"; return; fi
+  if [ "$HAS_RESULTS" != 1 ]; then no_results escalation; return; fi
   if log_has_open_hit; then
     if nlog | awk '/^## Outcome Candidates/{s=1; next} /^## /{s=0} s' | grep -qi 'Suspicious Security Event'; then
       emit PASS escalation "a true-positive or Undetermined hit has a Suspicious Security Event candidate"

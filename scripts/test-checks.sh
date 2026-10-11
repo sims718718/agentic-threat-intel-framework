@@ -455,6 +455,21 @@ wiring_review_fixes() {
   grep -q 'general-purpose' "$REPO/README.md" "$REPO/CLAUDE.md" && bad "docs: no general-purpose fallback wording" || ok "docs: no general-purpose fallback wording"
 }
 
+lint_results_status_hardening() {
+  local d m f
+  d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  sedi "$f" 's/^| *Results status *|.*/| **Results status** | **RECORDED** |/'
+  m=$(lint post "$d" 2>&1)
+  has "results-status: an emphasised status cell is still read" "$m" '^PASS results-status Results status: RECORDED'
+  has "results-status: post-stage checks still run on an emphasised status" "$m" '^PASS story-ids'
+  d=$(mut); f="$d/threat-hunting/hunt-logs/$SLUG-hunt-log.md"
+  sedi "$f" 's/^\(| *Results status *|\).*/\1 BOGUS |/'
+  m=$(lint post "$d" 2>&1)
+  has "results-status: an unrecognised status warns that result checks did not run" "$m" '^WARN story-ids .*unrecognised'
+  has "results-status: verdict-bound warns instead of silently skipping" "$m" '^WARN verdict-bound .*unrecognised'
+  has "results-status: escalation warns instead of silently skipping" "$m" '^WARN escalation .*unrecognised'
+}
+
 # --- tests end ---
 
 main() {
