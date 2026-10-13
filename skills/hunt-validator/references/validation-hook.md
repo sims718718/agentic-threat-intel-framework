@@ -16,6 +16,16 @@
 
 ---
 
+## Finding a prior validation (90-day reuse check)
+
+The "technique validated within the last 90 days, no stack change" exemption above requires a qualifying prior test — do not assume one exists just because the technique sounds familiar.
+
+1. Take the ATT&CK technique ID(s) from the current hunt's detection artifact (section 2) or, if none exists yet, the hunt plan's Epic `### MITRE ATT&CK Mapping`.
+2. Scan `./threat-hunting/validations/*.md`, skipping the current slug. For each file, read its `## Validation Record` block: the `ATT&CK:` line, the `Date/Time UTC:` stop date, and the `Outcome:` line.
+3. A file qualifies only if: the ATT&CK ID matches (same technique or sub-technique), `Outcome:` is `Validated`, and the stop date is within the last 90 days. `[PENDING EXECUTION]` records never qualify.
+4. **Stack change isn't recorded in the validation file** — confirm with the user/hunter that the SIEM/EDR platform and relevant telemetry pipeline haven't changed since that date before relying on the exemption. If they can't confirm, treat it as a stack change and require re-validation.
+5. If a qualifying match is found, cite it in the validation record's `Follow-up:` field: `Prior validation reused: <prior-slug> — tested <date> — see ./threat-hunting/validations/<prior-slug>-validation.md`. If no `./threat-hunting/validations/` directory exists, it's empty, or nothing matches, validation is required — say so rather than assuming the exemption applies.
+
 ## Procedure
 
 1. **Select the test.** Prefer an Atomic Red Team test mapped to the same ATT&CK sub-technique; use CALDERA for multi-step chains. If neither covers the procedure, write the manual steps into the record — do not skip.

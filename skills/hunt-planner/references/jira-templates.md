@@ -23,6 +23,9 @@ We hypothesize that [specific threat/behavior] may be present in [target environ
 evidenced by [observable indicators] within [data sources]. This can be validated 
 by [methodology] within [timeframe].
 
+Hypothesis rubric: Specificity [X] · Testability [X] · Falsifiability [X] · Relevance [X] · Pyramid [X] = [Total]
+[Or: Hypothesis rubric: Not scored — Express Mode]
+
 --------------------------------------------------------------------------------
 TRIGGERING EVENT
 --------------------------------------------------------------------------------

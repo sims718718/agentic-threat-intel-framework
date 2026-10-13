@@ -37,6 +37,8 @@ Read `./threat-hunting/detections/<slug>-detection.md` if it exists. Check `refe
 
 To check the "feasibility was CONDITIONAL" row, also read `./threat-hunting/hunt-plans/<slug>-hunt-plan.md`'s Feasibility Assessment section (in the Epic) — the detection artifact alone doesn't carry that information.
 
+To apply the "technique validated within the last 90 days" row, do not assume a prior test exists — follow `references/validation-hook.md`'s "Finding a prior validation" procedure to scan `./threat-hunting/validations/*.md` for a qualifying match before citing one. No match means validation is required.
+
 **RECORD mode:** decide the two clean-hunt rows from the hunt log instead of asking. A hunt-level verdict of Refuted with coverage Confirmed is a clean hunt. A verdict of Inconclusive means the negative result is unsupported, so validation is required.
 
 ## Step 2: Run the validation procedure
