@@ -85,6 +85,8 @@ For complex hunts requiring competing hypotheses, or for the five ready-made tem
 
 **Then score it.** Run the hypothesis through `references/hypothesis-rubric.md`'s 5-dimension rubric (Specificity, Testability, Falsifiability, Relevance, Pyramid level). A score below 10, or any single dimension scoring 1, means rewrite before proceeding to Step 3 — most failures are Specificity, so push the hypothesis down to a field-level observable.
 
+**Record the score in the Epic.** Write the five dimension scores and the total as a `Hypothesis rubric:` line directly under the hypothesis statement in Step 6's `### Hypothesis` section (see the Epic Structure template). This is the only place the score is persisted — `hunt-execution`'s verdict rules (Falsifiability) read it from there, not from this step's working scratch. Express Mode writes `Hypothesis rubric: Not scored — Express Mode` instead, since Express Mode skips this scoring.
+
 **Competing explanations (required when they exist).** Run the Competing Hypotheses Method in `references/hypothesis-templates.md` when the trigger admits two or more plausible explanations for the same observable (for example malicious use versus administrator tooling), or when the Initial Assessment (Step 3) finds a benign explanation that is not excluded; revisit this after Step 3. Record the matrix summary in the Epic's `Initial Research`. When there is a single explanation, record `ACH not needed: single explanation`. Express Mode skips this.
 
 **Assumed breach.** State the AIMOD2 premise in `Initial Research`: assume an adversary has already bypassed preventive controls, so the hunt looks for post-compromise behavior rather than prevention failures.
@@ -156,6 +158,9 @@ The Epic represents the overarching hunt hypothesis and contains:
 
 ### Hypothesis
 [SMART hypothesis statement]
+
+Hypothesis rubric: Specificity X · Testability X · Falsifiability X · Relevance X · Pyramid X = Total
+[Or: Hypothesis rubric: Not scored — Express Mode]
 
 ### Triggering Event
 - Type: [CTI | Incomplete Use Cases | Past Incidents | Red Team/Purple Team Findings | MITRE ATT&CK TTPs | Stakeholder Requirements | Vulnerability Disclosure]
@@ -277,7 +282,7 @@ Tasks capture hunt outcomes. Create placeholder tasks during planning; populate 
 Before finalizing the hunt plan, verify:
 
 - [ ] Triggering event documented with source and relevance
-- [ ] Hypothesis is SMART-compliant and scored ≥10 on the hypothesis rubric with no dimension at 1
+- [ ] Hypothesis is SMART-compliant and scored ≥10 on the hypothesis rubric with no dimension at 1, and the `Hypothesis rubric:` line is written under `### Hypothesis` (or `Not scored — Express Mode`)
 - [ ] Initial assessment completed with internal/external sources, and the prior-hunt check, known-good seeding, ACH decision, and assumed-breach premise recorded in `Initial Research`
 - [ ] Feasibility assessment shows GO or CONDITIONAL with documented assumptions
 - [ ] Scope clearly defines boundaries, time window, and in-scope assets
